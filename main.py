@@ -63,7 +63,7 @@ def learn_directory(directory_path, db):
                 except Exception as e:
                     print(f"    [-] Eroare la procesarea {file}: {e}")
 
-def recognize_audio(duration, db, strategy=None):
+def recognize_audio(duration, db, strategy=None, source_name="Microfon"):
     # Strategy injection (Strategy Design Pattern)
     recorder = AudioRecorder(strategy=strategy, sample_rate=22050)
     audio_data = recorder.record(duration_seconds=duration)
@@ -81,6 +81,8 @@ def recognize_audio(duration, db, strategy=None):
     
     if quality['rating'] == 'TOO_LOW':
         print("[-] Sunetul captat este prea slab. Recunoaștere anulată.")
+        # Log failure to history
+        db.insert_history(source_name, None, quality['snr'], 0)
         return
         
     # 2. AI Denoising (Spectral Gating)
@@ -92,6 +94,7 @@ def recognize_audio(duration, db, strategy=None):
     
     if not hashes:
         print("[-] Nu s-au putut extrage amprente din sunetul captat. Încearcă din nou.")
+        db.insert_history(source_name, None, quality['snr'], 0)
         return
         
     print(f"[*] S-au generat {len(hashes)} amprente. Caut potriviri în baza de date...")
@@ -102,6 +105,7 @@ def recognize_audio(duration, db, strategy=None):
     
     if not matches:
         print("[-] Nu am găsit nicio potrivire în baza de date.")
+        db.insert_history(source_name, None, quality['snr'], 0)
         return
         
     # Align matches
@@ -122,6 +126,7 @@ def recognize_audio(duration, db, strategy=None):
                 
     if not song_diffs:
         print("[-] Nu am găsit nicio aliniere validă.")
+        db.insert_history(source_name, None, quality['snr'], 0)
         return
         
     # Score songs
@@ -139,6 +144,7 @@ def recognize_audio(duration, db, strategy=None):
     # Threshold for match
     if best_score < 5:
         print(f"[-] Potrivire prea slabă (Scor: {best_score}). Melodia nu a fost recunoscută sigur.")
+        db.insert_history(source_name, None, quality['snr'], best_score)
         return
         
     song_name = db.get_song_by_id(best_song_id)
@@ -146,6 +152,9 @@ def recognize_audio(duration, db, strategy=None):
     print(f"[!] MELODIE RECUNOSCUTĂ: {song_name}")
     print(f"[!] SCOR ÎNCREDERE: {best_score} potriviri")
     print("="*50 + "\n")
+    
+    # Log successful search in history
+    db.insert_history(source_name, best_song_id, quality['snr'], best_score)
     
     # 3. AI Music Recommendations (AI Agent 2)
     recommender = AIRecommendationAgent(db)
@@ -159,16 +168,26 @@ def recognize_audio(duration, db, strategy=None):
 
 def main():
     parser = argparse.ArgumentParser(description="PyShazam - Aplicație de recunoaștere audio cu agenți AI (MDS)")
-    parser.add_argument('mode', choices=['learn', 'listen'], help="Modul de funcționare: 'learn' (învață) sau 'listen' (ascultă)")
+    parser.add_argument('mode', nargs='?', choices=['learn', 'listen'], help="Modul de funcționare: 'learn' (învață) sau 'listen' (ascultă)")
     parser.add_argument('--dir', type=str, help="Directorul cu fișiere audio (necesar pentru 'learn')")
     parser.add_argument('--duration', type=int, default=10, help="Durata de ascultare în secunde (pentru 'listen', default: 10)")
     parser.add_argument('--file', type=str, help="Folosește un fișier audio ca input (opțiune pentru testare)")
     parser.add_argument('--mock', action='store_true', help="Generează sunet artificial pentru testare (opțiune pentru testare)")
+    parser.add_argument('--gui', action='store_true', help="Lansează interfața grafică desktop a aplicației")
     
     args = parser.parse_args()
     
     # Singleton DatabaseManager usage
     db = DatabaseManager('shazam_clone.db')
+    
+    if args.gui or (args.mode is None):
+        # Launch graphical user interface
+        print("[*] Se lansează interfața grafică desktop (GUI)...")
+        from gui import PyShazamGUI
+        gui_app = PyShazamGUI(db)
+        gui_app.run()
+        db.close()
+        return
     
     if args.mode == 'learn':
         if not args.dir:
@@ -182,17 +201,20 @@ def main():
     elif args.mode == 'listen':
         # Select Strategy (Strategy Design Pattern)
         strategy = None
+        source_name = "Microfon"
         if args.file:
             if not os.path.isfile(args.file):
                 print(f"[-] Fișierul {args.file} nu există.")
                 sys.exit(1)
             strategy = FileInputStrategy(args.file)
+            source_name = f"Fișier: {os.path.basename(args.file)}"
         elif args.mock:
             strategy = MockInputStrategy()
+            source_name = "Mock Audio"
         else:
             strategy = MicrophoneInputStrategy()
             
-        recognize_audio(args.duration, db, strategy=strategy)
+        recognize_audio(args.duration, db, strategy=strategy, source_name=source_name)
         
     db.close()
 

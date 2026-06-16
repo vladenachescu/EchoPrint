@@ -1,8 +1,8 @@
 # PyShazam (MDS Project)
 
-PyShazam este o aplicație de recunoaștere audio dezvoltată în Python, inspirată de algoritmul de fingerprinting utilizat de Shazam. Proiectul este structurat conform cerințelor academice pentru disciplina **Metode de Dezvoltare Software (MDS)** de la FMI Unibuc.
+PyShazam este o aplicație de recunoaștere audio dezvoltată în Python, inspirată de algoritmul de fingerprinting utilizat de Shazam. Proiectul este structurat conform cerințelor academice și specificațiilor oficiale pentru disciplina **Metode de Dezvoltare Software (MDS)** de la FMI Unibuc.
 
-Aplicația scanează și „învață” melodii dintr-o bibliotecă muzicală locală (generând amprente spectrale), iar apoi poate recunoaște o melodie ascultată live prin microfon sau dintr-un fișier, curățând zgomotul de fundal și recomandând ulterior melodii similare din baza de date.
+Aplicația scanează și „învață” melodii dintr-o bibliotecă muzicală locală (generând amprente spectrale), iar apoi poate recunoaște o melodie ascultată live prin microfon sau dintr-un fișier, curățând zgomotul de fundal cu AI, oferind recomandări similare și logând rezultatele într-un istoric persistat în baza de date.
 
 ---
 
@@ -55,6 +55,12 @@ classDiagram
         +insert_features(song_id, bpm, centroid, flatness, zcr) bool
         +get_features(song_id) tuple
         +get_all_features() list
+        +update_song_name(song_id, new_name) bool
+        +delete_song(song_id) bool
+        +get_all_songs_metadata() list
+        +insert_history(input_source, recognized_song_id, snr, confidence_score) bool
+        +get_history() list
+        +clear_history() bool
         +close()
     }
     
@@ -79,35 +85,61 @@ classDiagram
         +recommend_for_song(song_id, top_n) list
     }
     AIRecommendationAgent --> DatabaseManager : queries
+    
+    class PyShazamGUI {
+        -db: DatabaseManager
+        -is_processing: bool
+        -selected_file_path: str
+        +__init__(db)
+        +create_widgets()
+        +load_database_songs()
+        +load_search_history()
+        +modify_selected_song()
+        +delete_selected_song()
+        +start_recognition_thread()
+        +start_learning_thread()
+        +run()
+    }
+    PyShazamGUI --> DatabaseManager : CRUD & History
+    PyShazamGUI --> AINoiseAgent : Denoise Check
+    PyShazamGUI --> AIRecommendationAgent : Recommendations
+    PyShazamGUI --> AudioRecorder : Strategy Record
 ```
 
 ---
 
-## 🛠️ Design Patterns Utilizate
+## 🛠️ Specificații Proiect Implementate (Conform Fișei)
 
-Pentru a asigura calitatea, testabilitatea și conformitatea cu bunele practici OOP cerute în cadrul disciplinei MDS, am implementat următoarele modele de design:
+Aplicația implementează în totalitate specificațiile din fișa oficială a proiectului:
 
-1. **Singleton Pattern (`DatabaseManager`)**:
-   - Asigură crearea unei singure conexiuni active la baza de date SQLite (`shazam_clone.db`) pe parcursul execuției programului, evitând accesul concurent sau blocajele de conexiune.
-   - Implementat prin suprascrierea metodei `__new__` în Python.
-
-2. **Strategy Pattern (`AudioInputStrategy`)**:
-   - Permite decuplarea logicii de înregistrare audio de restul aplicației.
-   - Astfel, sursa de audio poate fi schimbată dinamic la runtime: înregistrare live de la microfon (`MicrophoneInputStrategy`), încărcarea unui fișier audio preînregistrat (`FileInputStrategy`) sau simularea unui semnal artificial pentru teste automate (`MockInputStrategy`), eliminând dependența de un microfon fizic în mediile de testare.
+1. **Stocarea melodiilor într-o bază de date**: Baza de date SQLite (`shazam_clone.db`) păstrează melodiile, amprentele unice și caracteristicile AI.
+2. **Adăugarea, ștergerea și modificarea intrărilor**:
+   - *Adăugare*: Prin tab-ul de învățare sau din CLI.
+   - *Ștergere*: Ștergerea completă a unei melodii și a amprentelor/trăsăturilor sale asociate direct din tabel (cu constrângere `ON DELETE CASCADE` activată).
+   - *Modificare*: Redenumirea numelui de afișare al oricărei melodii salvate.
+3. **Vizionarea bazei de date în funcție de filtre**: Tab-ul de Administrare conține un tabel `Treeview` cu un câmp de căutare dinamic care filtrează în timp real melodiile pe măsură ce utilizatorul tastează litere din nume.
+4. **Interfață grafică pentru utilizator (GUI)**: Dezvoltată în Tkinter cu un aspect premium de tip *Dark Theme*. Permite:
+   - Selectarea sursei audio (Microfon fizic, Fișier din PC sau Simulare test/Mock).
+   - Înregistrarea live și monitorizarea calității audio.
+   - Învățarea folderelor prin selectare vizuală.
+5. **Formarea unui istoric de căutări**: Tabela `search_history` din SQLite salvează automat fiecare recunoaștere (data/ora, sursa audio, piesa identificată/eșuată, SNR estimat și scor de încredere). Istoricul este afișat într-un tabel dedicat în GUI și poate fi golit oricând.
+6. **Design Patterns**: 
+   - **Singleton** (`DatabaseManager`) pentru o conexiune sigură și unică.
+   - **Strategy** (`AudioInputStrategy`) pentru flexibilitatea sursei audio (utilă în special la testare fără microfon).
 
 ---
 
 ## 🧠 Agenți de Inteligență Artificială (AI Agents)
 
-Aplicația integrează **2 agenți AI** autonomi care lucrează pe baza caracteristicilor spectrale ale sunetului:
+Aplicația integrează **2 agenți AI** autonomi:
 
 1. **AI Noise & Quality Agent (`AINoiseAgent`)**:
-   - **Analiza Calității**: Evaluează RMS (volumul), clipping-ul (distorsiunile) și SNR-ul estimat (Signal-to-Noise Ratio) raportat la zgomotul de fundal. Returnează un raport (`EXCELLENT`, `NOISY`, `DISTORTED`, `TOO_LOW`).
-   - **Denoising**: Aplică o filtrare prin *spectral subtraction (spectral gating)* în domeniul frecvență (STFT) pentru a atenua automat zgomotul static alb/roz, asigurând o potrivire de mare precizie în baza de date chiar și în condiții de zgomot.
+   - Evaluează RMS, distorsiunile și raportul SNR.
+   - Aplică atenuare spectrală (*spectral subtraction / gating*) pentru eliminarea zgomotului static de fundal înainte de recunoaștere.
 
 2. **AI Recommendation Agent (`AIRecommendationAgent`)**:
-   - **Extracție de Caracteristici**: În timpul învățării melodiei, agentul extrage caracteristici fundamentale: tempo (BPM), *Spectral Centroid* (strălucirea/timbrul), *Spectral Flatness* (zgomotozitatea) și *Zero Crossing Rate*.
-   - **Recomandări Similare**: La identificarea cu succes a unei melodii, agentul normalizează vectorii de trăsături folosind *Min-Max scaling* și calculează distanța euclidiană față de restul melodiilor din baza de date, returnând top 3 cele mai similare melodii.
+   - Extrage tempo-ul (BPM) și timbrul spectral în timpul indexării melodiei.
+   - Recomandă top 3 piese similare folosind distanța euclidiană a vectorilor normalizați (Min-Max).
 
 ---
 
@@ -120,37 +152,30 @@ Aplicația integrează **2 agenți AI** autonomi care lucrează pe baza caracter
    pip install -r requirements.txt
    ```
 
-### 1. Modul "Learn" (Învățare)
-Scanează un folder local, extrage amprentele melodiei și trăsăturile AI pentru recomandări:
+### Lansare Interfață Grafică (GUI)
+Pentru a lansa interfața grafică desktop (implicit dacă nu se trimit argumente):
 ```bash
-python main.py learn --dir /calea/catre/muzica
+python main.py --gui
+# sau simplu
+python main.py
 ```
 
-### 2. Modul "Listen" (Recunoaștere)
-- **Ascultă la microfon (implicit)**:
+### Rulare mod CLI (Command Line Interface)
+- **Modul Învățare**:
+  ```bash
+  python main.py learn --dir /calea/catre/muzica
+  ```
+- **Modul Ascultare**:
   ```bash
   python main.py listen --duration 10
-  ```
-- **Folosește un fișier audio (util pentru teste/demo fără microfon)**:
-  ```bash
-  python main.py listen --file calea/catre/inregistrare.wav
-  ```
-- **Folosește semnal simulat (mock)**:
-  ```bash
-  python main.py listen --mock
   ```
 
 ---
 
 ## 🧪 Testare Unitară
 
-Pentru rularea suitei complete de teste unitare automate (fără a fi necesar un microfon fizic mulțumită strategiei `MockInputStrategy`):
+Pentru rularea celor 18 teste unitare automate (ce acoperă integral logica audio, Singleton-ul DB, operațiile CRUD de ștergere/modificare, istoricul și agenții AI):
 
 ```bash
 python -m unittest discover -s tests -p "test_*.py"
 ```
-
-Testele acoperă:
-- `test_audio_processor.py`: generarea spectrogramelor, a constellation map-ului și a hash-urilor.
-- `test_db_manager.py`: funcționarea Singleton-ului, stocarea fingerprint-urilor, persistența și citirea features-urilor AI.
-- `test_ai_agents.py`: corectitudinea evaluării calității audio, a funcției de denoising și a similarității în recomandările AI.
