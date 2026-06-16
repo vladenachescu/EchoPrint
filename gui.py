@@ -136,7 +136,7 @@ class PyShazamGUI:
         self.btn_shazam = tk.Button(panel_left, text="🔍 IDENTIFICĂ ACUM", font=("Outfit", 12, "bold"), 
                                     bg=COLOR_ACCENT, fg=FG_MAIN, activebackground=COLOR_ACCENT, activeforeground=FG_MAIN,
                                     borderwidth=0, cursor="hand2", command=self.start_recognition_thread)
-        self.btn_shazam.pack(fill=tk.X, side=tk.BOTTOM, padx=20, pady=20, height=45)
+        self.btn_shazam.pack(fill=tk.X, side=tk.BOTTOM, padx=20, pady=20, ipady=8)
         
         # Right Panel (Results & AI Reports)
         panel_right = tk.Frame(self.tab_recognition, bg=BG_MAIN)
