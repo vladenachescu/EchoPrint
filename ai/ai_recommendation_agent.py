@@ -1,6 +1,6 @@
 import numpy as np
 import librosa
-from db_manager import DatabaseManager
+from db.db_manager import DatabaseManager
 
 class AIRecommendationAgent:
     def __init__(self, db: DatabaseManager):

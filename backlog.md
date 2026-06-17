@@ -24,6 +24,11 @@ Acest document conține backlog-ul de produs și planificarea pe sprint-uri pent
 *   **MDS-11**: Ca utilizator, doresc posibilitatea de a șterge melodii și de a le modifica numele (CRUD complet) direct din interfață. (Done)
 *   **MDS-12**: Ca utilizator, doresc formarea și vizualizarea unui istoric al căutărilor realizate. (Done)
 
+### Epic 5: Structură Modulară & Integrare Gemini LLM
+*   **MDS-13**: Ca dezvoltator, doresc organizarea codului pe pachete modulare standard Python (`db/`, `audio/`, `ai/`, `gui/`, `tests/`). (Done)
+*   **MDS-14**: Ca utilizator, doresc integrarea a doi agenți AI LLM (Gemini API) pentru trivia/biografie și semnificația versurilor, cu sistem de fallback offline (Mock). (Done)
+*   **MDS-15**: Ca utilizator, doresc posibilitatea de a configura cheia Gemini API direct din GUI și salvarea ei în DB SQLite. (Done)
+
 ---
 
 ## Planificare Sprint-uri
@@ -56,3 +61,11 @@ Acest document conține backlog-ul de produs și planificarea pe sprint-uri pent
     - *Tab Adăugare Melodii* (învață folder prin selectare vizuală).
 *   [x] Adăugare teste unitare pentru CRUD și istoricul de căutare.
 *   [x] Integrare argument `--gui` în `main.py`.
+
+### Sprint 5: Weeks 15-16 (Restructurare Modulară & Google Gemini API)
+*   [x] Creare directoare de pachet `db/`, `audio/`, `ai/`, `gui/` și organizare fișiere.
+*   [x] Implementare tabelă `config` pentru salvarea API Key în SQLite.
+*   [x] Implementare `ai/llm_client.py` pentru interogarea HTTP Gemini API cu fallback offline (Mock) complet.
+*   [x] Implementare agenți AI `AIMusicTriviaAgent` (trivia melodie & bio) și `AILyricsAgent` (sens versuri & sentiment).
+*   [x] Modificare GUI pentru a include câmp de salvare Gemini API Key și panouri tabulate pentru agenții LLM.
+*   [x] Actualizare importuri în codul sursă și suita de teste automate (23 de teste unitare de succes).

@@ -5,9 +5,9 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ai_noise_agent import AINoiseAgent
-from ai_recommendation_agent import AIRecommendationAgent
-from db_manager import DatabaseManager
+from ai.ai_noise_agent import AINoiseAgent
+from ai.ai_recommendation_agent import AIRecommendationAgent
+from db.db_manager import DatabaseManager
 
 class TestAIAgents(unittest.TestCase):
     def setUp(self):
@@ -81,6 +81,43 @@ class TestAIAgents(unittest.TestCase):
         self.assertEqual(recs[0]["song_id"], s2)
         self.assertEqual(recs[1]["song_id"], s3)
         self.assertTrue(recs[0]["distance"] < recs[1]["distance"])
+
+    def test_gemini_client_fallback_trivia(self):
+        from ai.llm_client import GeminiLLMClient
+        # Clear config API key if any to ensure fallback
+        self.db.set_config_value("gemini_api_key", None)
+        client = GeminiLLMClient(self.db)
+        
+        trivia = client.generate("Mock prompt", "trivia", "Hotel California")
+        self.assertIn("Offline Mock", trivia)
+        self.assertIn("Hotel California", trivia)
+
+    def test_gemini_client_fallback_lyrics(self):
+        from ai.llm_client import GeminiLLMClient
+        self.db.set_config_value("gemini_api_key", None)
+        client = GeminiLLMClient(self.db)
+        
+        lyrics = client.generate("Mock prompt", "lyrics", "Billie Jean")
+        self.assertIn("Offline Mock", lyrics)
+        self.assertIn("Billie Jean", lyrics)
+
+    def test_music_trivia_agent(self):
+        from ai.ai_trivia_agent import AIMusicTriviaAgent
+        from ai.llm_client import GeminiLLMClient
+        self.db.set_config_value("gemini_api_key", None)
+        agent = AIMusicTriviaAgent(GeminiLLMClient(self.db))
+        res = agent.get_trivia("Billie Jean")
+        self.assertIn("Michael Jackson", res)
+        self.assertIn("Billie Jean", res)
+
+    def test_lyrics_agent(self):
+        from ai.ai_lyrics_agent import AILyricsAgent
+        from ai.llm_client import GeminiLLMClient
+        self.db.set_config_value("gemini_api_key", None)
+        agent = AILyricsAgent(GeminiLLMClient(self.db))
+        res = agent.get_lyrics_analysis("Hotel California")
+        self.assertIn("California", res)
+        self.assertIn("Hotel California", res)
 
 if __name__ == '__main__':
     unittest.main()

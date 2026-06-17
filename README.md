@@ -86,6 +86,27 @@ classDiagram
     }
     AIRecommendationAgent --> DatabaseManager : queries
     
+    class GeminiLLMClient {
+        -db: DatabaseManager
+        -api_url: str
+        +get_api_key() str
+        +call_gemini_api(prompt) str
+        +generate(prompt, fallback_type, song_name) str
+    }
+    GeminiLLMClient --> DatabaseManager : reads key
+
+    class AIMusicTriviaAgent {
+        -llm_client: GeminiLLMClient
+        +get_trivia(song_name) str
+    }
+    AIMusicTriviaAgent --> GeminiLLMClient : uses
+
+    class AILyricsAgent {
+        -llm_client: GeminiLLMClient
+        +get_lyrics_analysis(song_name) str
+    }
+    AILyricsAgent --> GeminiLLMClient : uses
+    
     class PyShazamGUI {
         -db: DatabaseManager
         -is_processing: bool
@@ -104,6 +125,8 @@ classDiagram
     PyShazamGUI --> AINoiseAgent : Denoise Check
     PyShazamGUI --> AIRecommendationAgent : Recommendations
     PyShazamGUI --> AudioRecorder : Strategy Record
+    PyShazamGUI --> AIMusicTriviaAgent : queries
+    PyShazamGUI --> AILyricsAgent : queries
 ```
 
 ---
@@ -131,7 +154,7 @@ Aplicația implementează în totalitate specificațiile din fișa oficială a p
 
 ## 🧠 Agenți de Inteligență Artificială (AI Agents)
 
-Aplicația integrează **2 agenți AI** autonomi:
+Aplicația integrează **4 agenți AI** autonomi:
 
 1. **AI Noise & Quality Agent (`AINoiseAgent`)**:
    - Evaluează RMS, distorsiunile și raportul SNR.
@@ -140,6 +163,12 @@ Aplicația integrează **2 agenți AI** autonomi:
 2. **AI Recommendation Agent (`AIRecommendationAgent`)**:
    - Extrage tempo-ul (BPM) și timbrul spectral în timpul indexării melodiei.
    - Recomandă top 3 piese similare folosind distanța euclidiană a vectorilor normalizați (Min-Max).
+
+3. **AI Music Trivia & Bio Agent (`AIMusicTriviaAgent`)**:
+   - Interoghează Gemini API (sau generează Mock-uri offline) pentru a obține o biografie succintă a artistului și 3 detalii interesante (trivia facts) despre piesă.
+
+4. **AI Lyrics & Sentiment Agent (`AILyricsAgent`)**:
+   - Analizează mesajul versurilor, extrage sentimentul predominant și oferă un rezumat tradus în limba română folosind Gemini API (cu fallback offline/mock).
 
 ---
 
@@ -174,7 +203,7 @@ python main.py
 
 ## 🧪 Testare Unitară
 
-Pentru rularea celor 18 teste unitare automate (ce acoperă integral logica audio, Singleton-ul DB, operațiile CRUD de ștergere/modificare, istoricul și agenții AI):
+Pentru rularea celor 23 de teste unitare automate (ce acoperă integral logica audio, Singleton-ul DB, operațiile CRUD de ștergere/modificare, istoricul, clientul LLM și toți agenții AI):
 
 ```bash
 python -m unittest discover -s tests -p "test_*.py"

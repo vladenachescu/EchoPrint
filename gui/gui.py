@@ -4,14 +4,18 @@ from tkinter import ttk, filedialog, messagebox
 import threading
 import time
 import numpy as np
+import hashlib
 
 # Import core business logic modules
-from db_manager import DatabaseManager
-from audio_processor import AudioProcessor
-from recorder import AudioRecorder
-from audio_source import MicrophoneInputStrategy, FileInputStrategy, MockInputStrategy
-from ai_noise_agent import AINoiseAgent
-from ai_recommendation_agent import AIRecommendationAgent
+from collections import Counter
+from db.db_manager import DatabaseManager
+from audio.audio_processor import AudioProcessor
+from audio.recorder import AudioRecorder
+from audio.audio_source import MicrophoneInputStrategy, FileInputStrategy, MockInputStrategy
+from ai.ai_noise_agent import AINoiseAgent
+from ai.ai_recommendation_agent import AIRecommendationAgent
+from ai.ai_trivia_agent import AIMusicTriviaAgent
+from ai.ai_lyrics_agent import AILyricsAgent
 
 # Color Palette (Premium Dark Theme)
 BG_MAIN = "#121216"       # Deep dark background
@@ -173,16 +177,35 @@ class PyShazamGUI:
         self.lbl_score_result = tk.Label(card_result, text="", font=FONT_BODY, fg=FG_MUTED, bg=BG_CARD)
         self.lbl_score_result.pack(padx=20, pady=2, fill=tk.X)
         
-        # Recommendations box
-        self.frame_recommendations = tk.Frame(card_result, bg=BG_CARD)
-        self.frame_recommendations.pack(fill=tk.BOTH, expand=True, padx=20, pady=(10, 15))
+        # Sub-notebook for AI analysis and recommendations
+        self.ai_notebook = ttk.Notebook(card_result)
+        self.ai_notebook.pack(fill=tk.BOTH, expand=True, padx=20, pady=(10, 15))
         
-        lbl_rec_title = tk.Label(self.frame_recommendations, text="AI Recommendations (Piese Similare):", font=FONT_BODY, fg=COLOR_TEAL, bg=BG_CARD)
-        lbl_rec_title.pack(anchor=tk.W, pady=(5, 5))
+        # Tab 1: Recommendations
+        self.tab_recs = tk.Frame(self.ai_notebook, bg=BG_CARD)
+        self.ai_notebook.add(self.tab_recs, text="🎵 Recomandări")
         
-        self.lbl_recs_list = tk.Label(self.frame_recommendations, text="Melodii similare vor fi recomandate aici în funcție de BPM și timbru spectral.", 
+        self.lbl_recs_list = tk.Label(self.tab_recs, text="Melodii similare vor fi recomandate aici în funcție de BPM și timbru spectral.", 
                                       font=FONT_BODY, fg=FG_MUTED, bg=BG_CARD, justify=tk.LEFT, wraplength=420)
-        self.lbl_recs_list.pack(anchor=tk.W, padx=10, fill=tk.X)
+        self.lbl_recs_list.pack(anchor=tk.W, padx=15, pady=15, fill=tk.BOTH, expand=True)
+        
+        # Tab 2: Trivia & Bio
+        self.tab_trivia = tk.Frame(self.ai_notebook, bg=BG_CARD)
+        self.ai_notebook.add(self.tab_trivia, text="💡 Trivia & Biografie")
+        
+        self.txt_trivia = tk.Text(self.tab_trivia, bg=BG_CARD, fg=FG_MAIN, insertbackground=FG_MAIN, borderwidth=0, font=FONT_BODY, wrap=tk.WORD)
+        self.txt_trivia.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        self.txt_trivia.insert(tk.END, "Informațiile despre artist și trivia vor apărea aici după recunoaștere.")
+        self.txt_trivia.configure(state=tk.DISABLED)
+        
+        # Tab 3: Meaning & Lyrics
+        self.tab_lyrics = tk.Frame(self.ai_notebook, bg=BG_CARD)
+        self.ai_notebook.add(self.tab_lyrics, text="📝 Semnificație Versuri")
+        
+        self.txt_lyrics = tk.Text(self.tab_lyrics, bg=BG_CARD, fg=FG_MAIN, insertbackground=FG_MAIN, borderwidth=0, font=FONT_BODY, wrap=tk.WORD)
+        self.txt_lyrics.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        self.txt_lyrics.insert(tk.END, "Analiza mesajului piesei și rezumatul versurilor vor apărea aici după recunoaștere.")
+        self.txt_lyrics.configure(state=tk.DISABLED)
 
     def on_source_changed(self):
         source = self.input_source_var.get()
@@ -398,6 +421,34 @@ class PyShazamGUI:
     # TAB 4: LEARNING & DIRECTORY WIDGETS
     # ==========================================
     def build_tab_learning(self):
+        # Settings area for Gemini API Key
+        frame_settings = tk.Frame(self.tab_learning, bg=BG_CARD)
+        frame_settings.pack(fill=tk.X, padx=10, pady=(10, 0))
+        
+        lbl_settings_title = tk.Label(frame_settings, text="⚙️ Configurare Google Gemini API", font=FONT_TITLE, fg=FG_MAIN, bg=BG_CARD)
+        lbl_settings_title.pack(anchor=tk.W, padx=15, pady=(15, 5))
+        
+        lbl_settings_desc = tk.Label(frame_settings, text="Introduceți cheia API Gemini pentru a activa generarea inteligentă de trivia și analiza versurilor în timp real.", 
+                                     font=FONT_BODY, fg=FG_MUTED, bg=BG_CARD)
+        lbl_settings_desc.pack(anchor=tk.W, padx=15, pady=(2, 10))
+        
+        frame_key_input = tk.Frame(frame_settings, bg=BG_CARD)
+        frame_key_input.pack(fill=tk.X, padx=15, pady=(5, 15))
+        
+        lbl_key = tk.Label(frame_key_input, text="Gemini API Key:", font=FONT_BODY, fg=FG_MAIN, bg=BG_CARD)
+        lbl_key.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.entry_api_key = tk.Entry(frame_key_input, bg=BG_FIELD, fg=FG_MAIN, insertbackground=FG_MAIN, borderwidth=0, font=FONT_BODY, width=50, show="*")
+        self.entry_api_key.pack(side=tk.LEFT, padx=(0, 10), ipady=5)
+        
+        # Load existing key
+        existing_key = self.db.get_config_value("gemini_api_key") or ""
+        self.entry_api_key.insert(0, existing_key)
+        
+        btn_save_key = tk.Button(frame_key_input, text="Salvează Cheia", font=("Outfit", 10, "bold"), bg=COLOR_TEAL, fg=BG_MAIN, borderwidth=0, 
+                                 cursor="hand2", padx=15, command=self.save_gemini_api_key)
+        btn_save_key.pack(side=tk.LEFT, ipady=2)
+
         # Folder selection area
         frame_dir = tk.Frame(self.tab_learning, bg=BG_CARD)
         frame_dir.pack(fill=tk.X, padx=10, pady=10)
@@ -598,110 +649,126 @@ class PyShazamGUI:
             strategy = MicrophoneInputStrategy()
             source_name = "Microfon"
             
-        # UI animation simulate for duration
-        def update_progress():
-            step = 100 / (duration * 10)
-            for _ in range(int(duration * 10)):
-                if not self.is_processing:
-                    break
-                time.sleep(0.1)
-                self.root.after(0, lambda: self.progress_bar.step(step))
+        try:
+            # UI animation simulate for duration
+            def update_progress():
+                step = 100 / (duration * 10)
+                for _ in range(int(duration * 10)):
+                    if not self.is_processing:
+                        break
+                    time.sleep(0.1)
+                    self.root.after(0, lambda: self.progress_bar.step(step))
 
-        # Start loading/recording
-        self.root.after(0, lambda: self.lbl_song_result.configure(text=f"Ascult/Încarc piesa ({duration}s)..."))
-        
-        # Run progressbar in separate thread
-        prog_thread = threading.Thread(target=update_progress, daemon=True)
-        prog_thread.start()
-        
-        # Load audio data
-        recorder = AudioRecorder(strategy=strategy, sample_rate=22050)
-        audio_data = recorder.record(duration_seconds=duration)
-        
-        # 1. Quality assess
-        self.root.after(0, lambda: self.lbl_song_result.configure(text="Evaluare calitate audio cu AI Agent..."))
-        noise_agent = AINoiseAgent(sample_rate=22050)
-        quality = noise_agent.assess_quality(audio_data)
-        
-        # Update Quality view
-        q_color = COLOR_GREEN if quality['rating'] == 'EXCELLENT' else (COLOR_RED if quality['rating'] in ['TOO_LOW', 'DISTORTED'] else "#FFAA00")
-        self.root.after(0, lambda: self.lbl_q_status.configure(text=f"Rating: {quality['rating']}", fg=q_color))
-        self.root.after(0, lambda: self.lbl_q_details.configure(
-            text=f"SNR: {quality['snr']:.1f} dB | Clipping: {quality['clipping']:.2f}% | RMS: {quality['rms']:.4f}\nRecomandare: {quality['reason']}"
-        ))
-        
-        if quality['rating'] == 'TOO_LOW':
-            self.root.after(0, lambda: self.recognition_failed("Semnalul audio este prea slab (microfon oprit).", source_name, quality['snr'], 0))
-            return
+            # Start loading/recording
+            self.root.after(0, lambda: self.lbl_song_result.configure(text=f"Ascult/Încarc piesa ({duration}s)..."))
             
-        # 2. Denoising
-        self.root.after(0, lambda: self.lbl_song_result.configure(text="AI Agent: Se aplică Denoising spectral..."))
-        audio_clean = noise_agent.denoise(audio_data)
-        
-        # 3. Fingerprinting
-        self.root.after(0, lambda: self.lbl_song_result.configure(text="Se calculează amprentele spectrogrammei..."))
-        hashes = AudioProcessor.fingerprint_audio_data(audio_clean)
-        
-        if not hashes:
-            self.root.after(0, lambda: self.recognition_failed("Nu s-au putut genera amprente din semnal.", source_name, quality['snr'], 0))
-            return
+            # Run progressbar in separate thread
+            prog_thread = threading.Thread(target=update_progress, daemon=True)
+            prog_thread.start()
             
-        self.root.after(0, lambda: self.lbl_song_result.configure(text="Interogare bază de date..."))
-        hash_strings = [h[0] for h in hashes]
-        matches = self.db.find_matches(hash_strings)
-        
-        if not matches:
-            self.root.after(0, lambda: self.recognition_failed("Melodia nu a fost găsită în baza de date.", source_name, quality['snr'], 0))
-            return
+            # Load audio data
+            recorder = AudioRecorder(strategy=strategy, sample_rate=22050)
+            audio_data = recorder.record(duration_seconds=duration)
             
-        # Align
-        sample_hash_dict = {}
-        for h, offset in hashes:
-            if h not in sample_hash_dict:
-                sample_hash_dict[h] = []
-            sample_hash_dict[h].append(offset)
+            # 1. Quality assess
+            self.root.after(0, lambda: self.lbl_song_result.configure(text="Evaluare calitate audio cu AI Agent..."))
+            noise_agent = AINoiseAgent(sample_rate=22050)
+            quality = noise_agent.assess_quality(audio_data)
             
-        song_diffs = {}
-        for db_hash, song_id, db_offset in matches:
-            if db_hash in sample_hash_dict:
-                for sample_offset in sample_hash_dict[db_hash]:
-                    diff = db_offset - sample_offset
-                    if song_id not in song_diffs:
-                        song_diffs[song_id] = []
-                    song_diffs[song_id].append(diff)
-                    
-        if not song_diffs:
-            self.root.after(0, lambda: self.recognition_failed("Eroare de aliniere temporală a amprentelor.", source_name, quality['snr'], 0))
-            return
+            # Update Quality view
+            q_color = COLOR_GREEN if quality['rating'] == 'EXCELLENT' else (COLOR_RED if quality['rating'] in ['TOO_LOW', 'DISTORTED'] else "#FFAA00")
+            self.root.after(0, lambda: self.lbl_q_status.configure(text=f"Rating: {quality['rating']}", fg=q_color))
+            self.root.after(0, lambda: self.lbl_q_details.configure(
+                text=f"SNR: {quality['snr']:.1f} dB | Clipping: {quality['clipping']:.2f}% | RMS: {quality['rms']:.4f}\nRecomandare: {quality['reason']}"
+            ))
             
-        # Score
-        scores = {}
-        for song_id, diffs in song_diffs.items():
-            binned_diffs = [d - (d % 2) for d in diffs]
-            counter = Counter(binned_diffs)
-            best_diff, max_count = counter.most_common(1)[0]
-            scores[song_id] = max_count
+            if quality['rating'] == 'TOO_LOW':
+                self.root.after(0, lambda: self.recognition_failed("Semnalul audio este prea slab (microfon oprit).", source_name, quality['snr'], 0))
+                return
+                
+            # 2. Denoising
+            self.root.after(0, lambda: self.lbl_song_result.configure(text="AI Agent: Se aplică Denoising spectral..."))
+            audio_clean = noise_agent.denoise(audio_data)
             
-        best_song_id = max(scores, key=scores.get)
-        best_score = scores[best_song_id]
-        
-        if best_score < 5:
-            self.root.after(0, lambda: self.recognition_failed(f"Semnal prea slab pentru a fi sigur (Scor: {best_score} potriviri)", source_name, quality['snr'], best_score))
-            return
+            # 3. Fingerprinting
+            self.root.after(0, lambda: self.lbl_song_result.configure(text="Se calculează amprentele spectrogrammei..."))
+            hashes = AudioProcessor.fingerprint_audio_data(audio_clean)
             
-        song_name = self.db.get_song_by_id(best_song_id)
-        
-        # Save to DB history
-        self.db.insert_history(source_name, best_song_id, quality['snr'], best_score)
-        
-        # Load recommendations
-        recommender = AIRecommendationAgent(self.db)
-        recs = recommender.recommend_for_song(best_song_id, top_n=3)
-        
-        # Trigger UI update
-        self.root.after(0, lambda: self.recognition_success(song_name, best_score, recs))
+            if not hashes:
+                self.root.after(0, lambda: self.recognition_failed("Nu s-au putut genera amprente din semnal.", source_name, quality['snr'], 0))
+                return
+                
+            self.root.after(0, lambda: self.lbl_song_result.configure(text="Interogare bază de date..."))
+            hash_strings = [h[0] for h in hashes]
+            matches = self.db.find_matches(hash_strings)
+            
+            if not matches:
+                self.root.after(0, lambda: self.recognition_failed("Melodia nu a fost găsită în baza de date.", source_name, quality['snr'], 0))
+                return
+                
+            # Align
+            sample_hash_dict = {}
+            for h, offset in hashes:
+                if h not in sample_hash_dict:
+                    sample_hash_dict[h] = []
+                sample_hash_dict[h].append(offset)
+                
+            song_diffs = {}
+            for db_hash, song_id, db_offset in matches:
+                if db_hash in sample_hash_dict:
+                    for sample_offset in sample_hash_dict[db_hash]:
+                        diff = db_offset - sample_offset
+                        if song_id not in song_diffs:
+                            song_diffs[song_id] = []
+                        song_diffs[song_id].append(diff)
+                        
+            if not song_diffs:
+                self.root.after(0, lambda: self.recognition_failed("Eroare de aliniere temporală a amprentelor.", source_name, quality['snr'], 0))
+                return
+                
+            # Score
+            scores = {}
+            for song_id, diffs in song_diffs.items():
+                binned_diffs = [d - (d % 2) for d in diffs]
+                counter = Counter(binned_diffs)
+                best_diff, max_count = counter.most_common(1)[0]
+                scores[song_id] = max_count
+                
+            best_song_id = max(scores, key=scores.get)
+            best_score = scores[best_song_id]
+            
+            if best_score < 5:
+                self.root.after(0, lambda: self.recognition_failed(f"Semnal prea slab pentru a fi sigur (Scor: {best_score} potriviri)", source_name, quality['snr'], best_score))
+                return
+                
+            song_name = self.db.get_song_by_id(best_song_id)
+            
+            # Save to DB history
+            self.db.insert_history(source_name, best_song_id, quality['snr'], best_score)
+            
+            # Load recommendations
+            recommender = AIRecommendationAgent(self.db)
+            recs = recommender.recommend_for_song(best_song_id, top_n=3)
+            
+            # Call AI LLM agents to fetch trivia and lyrics in background
+            self.root.after(0, lambda: self.lbl_song_result.configure(text=f"🎵 Recunoscut: {song_name}\nSe interoghează agenții LLM..."))
+            
+            from ai.llm_client import GeminiLLMClient
+            llm_client = GeminiLLMClient(db_manager=self.db)
+            trivia_agent = AIMusicTriviaAgent(llm_client=llm_client)
+            lyrics_agent = AILyricsAgent(llm_client=llm_client)
+            
+            trivia_text = trivia_agent.get_trivia(song_name)
+            lyrics_text = lyrics_agent.get_lyrics_analysis(song_name)
+            
+            # Trigger UI update
+            self.root.after(0, lambda: self.recognition_success(song_name, best_score, recs, trivia_text, lyrics_text))
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            self.root.after(0, lambda: self.recognition_failed(f"Eroare internă: {str(e)}", source_name, quality.get('snr', 0.0) if 'quality' in locals() else 0.0, 0))
 
-    def recognition_success(self, song_name, score, recs):
+    def recognition_success(self, song_name, score, recs, trivia_text, lyrics_text):
         self.is_processing = False
         self.btn_shazam.configure(state=tk.NORMAL, bg=COLOR_ACCENT, text="🔍 IDENTIFICĂ ACUM")
         self.progress_bar.pack_forget()
@@ -718,6 +785,10 @@ class PyShazamGUI:
         else:
             self.lbl_recs_list.configure(text="Nu s-au găsit alte melodii în baza de date pentru recomandări.", fg=FG_MUTED)
             
+        # Update LLM Text boxes
+        self.update_text_widget(self.txt_trivia, trivia_text)
+        self.update_text_widget(self.txt_lyrics, lyrics_text)
+        
         self.load_search_history() # Reload history list in Tab 3
 
     def recognition_failed(self, reason, source_name, snr, score):
@@ -729,9 +800,26 @@ class PyShazamGUI:
         self.lbl_score_result.configure(text="")
         self.lbl_recs_list.configure(text="Identificarea a eșuat. Nu există recomandări disponibile.", fg=FG_MUTED)
         
+        # Clear LLM text boxes
+        self.update_text_widget(self.txt_trivia, "Informațiile despre artist și trivia vor apărea aici după recunoaștere.")
+        self.update_text_widget(self.txt_lyrics, "Analiza mesajului piesei și rezumatul versurilor vor apărea aici după recunoaștere.")
+        
         # Save failed query to history
         self.db.insert_history(source_name, None, snr, score)
         self.load_search_history() # Reload history list in Tab 3
+
+    def save_gemini_api_key(self):
+        key_val = self.entry_api_key.get().strip()
+        if self.db.set_config_value("gemini_api_key", key_val):
+            messagebox.showinfo("Succes", "Cheia Gemini API a fost salvată cu succes!")
+        else:
+            messagebox.showerror("Eroare", "Nu s-a putut salva cheia în baza de date.")
+
+    def update_text_widget(self, widget, text):
+        widget.configure(state=tk.NORMAL)
+        widget.delete("1.0", tk.END)
+        widget.insert(tk.END, text)
+        widget.configure(state=tk.DISABLED)
 
     # ==========================================
     # APP EXECUTION

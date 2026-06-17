@@ -4,7 +4,7 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from db_manager import DatabaseManager
+from db.db_manager import DatabaseManager
 
 class TestDatabaseManager(unittest.TestCase):
     def setUp(self):
@@ -186,6 +186,22 @@ class TestDatabaseManager(unittest.TestCase):
         success_clear = self.db.clear_history()
         self.assertTrue(success_clear)
         self.assertEqual(len(self.db.get_history()), 0)
+
+    def test_config_table_operations(self):
+        # Set a config value
+        self.db.set_config_value("test_key", "test_value")
+        # Retrieve it
+        value = self.db.get_config_value("test_key")
+        self.assertEqual(value, "test_value")
+        
+        # Overwrite value
+        self.db.set_config_value("test_key", "new_value")
+        value2 = self.db.get_config_value("test_key")
+        self.assertEqual(value2, "new_value")
+        
+        # Get non-existent key
+        non_existent = self.db.get_config_value("non_existent_key")
+        self.assertIsNone(non_existent)
 
 if __name__ == '__main__':
     unittest.main()

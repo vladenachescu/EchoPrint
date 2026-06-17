@@ -3,12 +3,12 @@ import sys
 import hashlib
 import argparse
 from collections import Counter
-from audio_processor import AudioProcessor
-from db_manager import DatabaseManager
-from recorder import AudioRecorder
-from audio_source import MicrophoneInputStrategy, FileInputStrategy, MockInputStrategy
-from ai_noise_agent import AINoiseAgent
-from ai_recommendation_agent import AIRecommendationAgent
+from audio.audio_processor import AudioProcessor
+from db.db_manager import DatabaseManager
+from audio.recorder import AudioRecorder
+from audio.audio_source import MicrophoneInputStrategy, FileInputStrategy, MockInputStrategy
+from ai.ai_noise_agent import AINoiseAgent
+from ai.ai_recommendation_agent import AIRecommendationAgent
 
 def get_file_hash(file_path):
     """Generate a hash for the file to prevent processing the same file twice."""
@@ -21,7 +21,7 @@ def get_file_hash(file_path):
     return hasher.hexdigest()
 
 def learn_directory(directory_path, db):
-    print(f"[*] Caut fișiere audio în {directory_path}...")
+    print(f"[*] Caut fisiere audio in {directory_path}...")
     valid_extensions = ('.mp3', '.wav', '.ogg', '.flac')
     
     for root, _, files in os.walk(directory_path):
@@ -32,7 +32,7 @@ def learn_directory(directory_path, db):
                 
                 # Check if song is already in db
                 if db.find_song_by_file_hash(file_hash):
-                    print(f"[*] Sari peste {file} (deja în baza de date)")
+                    print(f"[*] Sari peste {file} (deja in baza de date)")
                     continue
                 
                 print(f"[*] Procesez: {file}...")
@@ -59,7 +59,7 @@ def learn_directory(directory_path, db):
                         except Exception as fe:
                             print(f"    [-] Nu s-au putut extrage caracteristicile AI: {fe}")
                             
-                        print(f"    [+] Adăugat cu succes ({len(db_hashes)} amprente)")
+                        print(f"    [+] Adaugat cu succes ({len(db_hashes)} amprente)")
                 except Exception as e:
                     print(f"    [-] Eroare la procesarea {file}: {e}")
 
@@ -165,6 +165,29 @@ def recognize_audio(duration, db, strategy=None, source_name="Microfon"):
         for i, rec in enumerate(recs, 1):
             print(f"  {i}. {rec['song_name']} (Distanță metrică: {rec['distance']:.3f})")
         print("="*50 + "\n")
+
+    # 4. LLM Agents (Trivia & Lyrics)
+    print("[*] Interogare agenți LLM pentru trivia și versuri...")
+    from ai.llm_client import GeminiLLMClient
+    from ai.ai_trivia_agent import AIMusicTriviaAgent
+    from ai.ai_lyrics_agent import AILyricsAgent
+
+    llm_client = GeminiLLMClient(db_manager=db)
+    trivia_agent = AIMusicTriviaAgent(llm_client=llm_client)
+    lyrics_agent = AILyricsAgent(llm_client=llm_client)
+
+    trivia = trivia_agent.get_trivia(song_name)
+    lyrics = lyrics_agent.get_lyrics_analysis(song_name)
+
+    print("="*50)
+    print("[AI Music Trivia & Bio Agent]")
+    print(trivia)
+    print("="*50 + "\n")
+
+    print("="*50)
+    print("[AI Lyrics & Sentiment Agent]")
+    print(lyrics)
+    print("="*50 + "\n")
 
 def main():
     parser = argparse.ArgumentParser(description="PyShazam - Aplicație de recunoaștere audio cu agenți AI (MDS)")

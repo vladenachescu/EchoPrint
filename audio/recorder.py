@@ -1,4 +1,4 @@
-from audio_source import AudioInputStrategy, MicrophoneInputStrategy
+from audio.audio_source import AudioInputStrategy, MicrophoneInputStrategy
 
 class AudioRecorder:
     def __init__(self, strategy: AudioInputStrategy = None, sample_rate=22050):

@@ -6,7 +6,7 @@ import sys
 # Add parent directory to path so we can import modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from audio_processor import AudioProcessor
+from audio.audio_processor import AudioProcessor
 
 class TestAudioProcessor(unittest.TestCase):
     def setUp(self):

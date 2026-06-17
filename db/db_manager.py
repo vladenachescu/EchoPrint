@@ -21,7 +21,7 @@ class DatabaseManager:
         self._initialized = True
 
     def connect(self):
-        self.conn = sqlite3.connect(self.db_path)
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self.cursor = self.conn.cursor()
         # Enable foreign key support in SQLite
         self.cursor.execute('PRAGMA foreign_keys = ON')
@@ -61,6 +61,12 @@ class DatabaseManager:
                 snr REAL,
                 confidence_score INTEGER,
                 FOREIGN KEY(recognized_song_id) REFERENCES songs(song_id) ON DELETE SET NULL
+            )
+        ''')
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS config (
+                key TEXT PRIMARY KEY,
+                value TEXT
             )
         ''')
         # Index for fast lookup by hash
@@ -198,6 +204,29 @@ class DatabaseManager:
         except sqlite3.Error as e:
             print(f"[-] Eroare la ștergerea istoricului din DB: {e}")
             return False
+
+    def set_config_value(self, key, value):
+        """Salvare cheie de configurare în DB (cum ar fi Gemini API Key)."""
+        try:
+            self.cursor.execute('''
+                INSERT OR REPLACE INTO config (key, value)
+                VALUES (?, ?)
+            ''', (key, value))
+            self.conn.commit()
+            return True
+        except sqlite3.Error as e:
+            print(f"[-] Eroare la salvarea configurării: {e}")
+            return False
+
+    def get_config_value(self, key):
+        """Preluare cheie de configurare din DB."""
+        try:
+            self.cursor.execute('SELECT value FROM config WHERE key = ?', (key,))
+            result = self.cursor.fetchone()
+            return result[0] if result else None
+        except sqlite3.Error as e:
+            print(f"[-] Eroare la preluarea configurării: {e}")
+            return None
 
     def close(self):
         if self.conn:
