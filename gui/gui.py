@@ -6,6 +6,13 @@ import time
 import numpy as np
 import hashlib
 
+# Add static FFmpeg binaries to PATH dynamically
+try:
+    import static_ffmpeg
+    static_ffmpeg.add_paths()
+except ImportError:
+    pass
+
 # Import core business logic modules
 from collections import Counter
 from db.db_manager import DatabaseManager

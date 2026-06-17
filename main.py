@@ -3,6 +3,13 @@ import sys
 import hashlib
 import argparse
 from collections import Counter
+
+# Add static FFmpeg binaries to PATH dynamically
+try:
+    import static_ffmpeg
+    static_ffmpeg.add_paths()
+except ImportError:
+    pass
 from audio.audio_processor import AudioProcessor
 from db.db_manager import DatabaseManager
 from audio.recorder import AudioRecorder
