@@ -222,7 +222,7 @@ class PyShazamGUI:
             self.file_frame.pack_forget()
 
     def select_audio_file(self):
-        file_path = filedialog.askopenfilename(filetypes=[("Fișiere Audio", "*.mp3 *.wav *.ogg *.flac")])
+        file_path = filedialog.askopenfilename(filetypes=[("Fișiere Audio", "*.mp3 *.wav *.ogg *.flac *.m4a")])
         if file_path:
             self.selected_file_path = file_path
             self.lbl_selected_file.configure(text=os.path.basename(file_path))
