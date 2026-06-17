@@ -10,10 +10,10 @@ class AIMusicTriviaAgent:
         și 3 detalii interesante (trivia facts) despre piesa respectivă.
         """
         prompt = (
-            f"Ești un istoric muzical expert și un ghid enciclopedic. "
-            f"Oferă o scurtă biografie a artistului și exact 3 detalii interesante (trivia/trivia facts) "
-            f"despre melodia '{song_name}'. "
-            f"Răspunde în limba română într-un mod captivant și bine structurat cu titluri și bullet points. "
-            f"Nu adăuga alte introduceri sau concluzii inutile."
+            f"You are an expert music historian and encyclopedic guide. "
+            f"Provide a brief biography of the artist and exactly 3 interesting details (trivia/trivia facts) "
+            f"about the song '{song_name}'. "
+            f"Respond in English in an engaging and well-structured format with headings and bullet points. "
+            f"Do not add any unnecessary introductions or conclusions."
         )
         return self.llm_client.generate(prompt, fallback_type="trivia", song_name=song_name)

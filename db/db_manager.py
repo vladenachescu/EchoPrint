@@ -121,7 +121,7 @@ class DatabaseManager:
             self.conn.commit()
             return True
         except sqlite3.Error as e:
-            print(f"[-] Eroare la salvarea caracteristicilor în DB: {e}")
+            print(f"[-] Error saving features in DB: {e}")
             return False
 
     def get_features(self, song_id):
@@ -145,7 +145,7 @@ class DatabaseManager:
             self.conn.commit()
             return True
         except sqlite3.Error as e:
-            print(f"[-] Eroare la actualizarea numelui melodiei: {e}")
+            print(f"[-] Error updating song name: {e}")
             return False
 
     def delete_song(self, song_id):
@@ -158,7 +158,7 @@ class DatabaseManager:
             self.conn.commit()
             return True
         except sqlite3.Error as e:
-            print(f"[-] Eroare la ștergerea melodiei din DB: {e}")
+            print(f"[-] Error deleting song from DB: {e}")
             return False
 
     def get_all_songs_metadata(self):
@@ -182,7 +182,7 @@ class DatabaseManager:
             self.conn.commit()
             return True
         except sqlite3.Error as e:
-            print(f"[-] Eroare la salvarea istoricului de căutări: {e}")
+            print(f"[-] Error saving search history: {e}")
             return False
 
     def get_history(self):
@@ -202,11 +202,11 @@ class DatabaseManager:
             self.conn.commit()
             return True
         except sqlite3.Error as e:
-            print(f"[-] Eroare la ștergerea istoricului din DB: {e}")
+            print(f"[-] Error clearing history from DB: {e}")
             return False
 
     def set_config_value(self, key, value):
-        """Salvare cheie de configurare în DB (cum ar fi Gemini API Key)."""
+        """Save config value in DB (like Gemini API Key)."""
         try:
             self.cursor.execute('''
                 INSERT OR REPLACE INTO config (key, value)
@@ -215,17 +215,17 @@ class DatabaseManager:
             self.conn.commit()
             return True
         except sqlite3.Error as e:
-            print(f"[-] Eroare la salvarea configurării: {e}")
+            print(f"[-] Error saving config: {e}")
             return False
 
     def get_config_value(self, key):
-        """Preluare cheie de configurare din DB."""
+        """Retrieve config value from DB."""
         try:
             self.cursor.execute('SELECT value FROM config WHERE key = ?', (key,))
             result = self.cursor.fetchone()
             return result[0] if result else None
         except sqlite3.Error as e:
-            print(f"[-] Eroare la preluarea configurării: {e}")
+            print(f"[-] Error retrieving config: {e}")
             return None
 
     def close(self):

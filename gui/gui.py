@@ -43,7 +43,7 @@ class EchoPrintGUI:
     def __init__(self, db: DatabaseManager):
         self.db = db
         self.root = tk.Tk()
-        self.root.title("EchoPrint - Recunoaștere Audio MDS")
+        self.root.title("EchoPrint - Audio Recognition MDS")
         self.root.geometry("850x650")
         self.root.minsize(800, 600)
         self.root.configure(bg=BG_MAIN)
@@ -114,8 +114,8 @@ class EchoPrintGUI:
         lbl_source = tk.Label(panel_left, text="Sursă Audio Input:", font=FONT_BODY, fg=FG_MUTED, bg=BG_CARD)
         lbl_source.pack(anchor=tk.W, padx=15, pady=(10, 2))
         
-        self.input_source_var = tk.StringVar(value="Microfon")
-        sources = ["Microfon", "Fișier Audio (.mp3, .wav)", "Simulare Mock (Semnal test)"]
+        self.input_source_var = tk.StringVar(value="Microphone")
+        sources = ["Microphone", "Fișier Audio (.mp3, .wav)", "Simulare Mock (Semnal test)"]
         for s in sources:
             r = tk.Radiobutton(panel_left, text=s, variable=self.input_source_var, value=s, 
                                bg=BG_CARD, fg=FG_MAIN, selectcolor=BG_FIELD, activebackground=BG_CARD, 
@@ -144,7 +144,7 @@ class EchoPrintGUI:
         self.slider_duration.pack(fill=tk.X, padx=20, pady=5)
         
         # Action button (IDENTIFY)
-        self.btn_identify = tk.Button(panel_left, text="🔍 IDENTIFICĂ ACUM", font=("Outfit", 12, "bold"), 
+        self.btn_identify = tk.Button(panel_left, text="🔍 IDENTIFY NOW", font=("Outfit", 12, "bold"), 
                                     bg=COLOR_ACCENT, fg=FG_MAIN, activebackground=COLOR_ACCENT, activeforeground=FG_MAIN,
                                     borderwidth=0, cursor="hand2", command=self.start_recognition_thread)
         self.btn_identify.pack(fill=tk.X, side=tk.BOTTOM, padx=20, pady=20, ipady=8)
@@ -254,7 +254,7 @@ class EchoPrintGUI:
         
         # Columns: ID, Song Name, Fingerprint Count
         self.tree_songs = ttk.Treeview(frame_table, columns=("id", "name", "fingerprints"), show="headings", yscrollcommand=scroll_y.set)
-        self.tree_songs.heading("id", text="ID Melodie")
+        self.tree_songs.heading("id", text="Song ID")
         self.tree_songs.heading("name", text="Nume Fișier Melodie")
         self.tree_songs.heading("fingerprints", text="Număr Amprente Stocate")
         
@@ -327,14 +327,14 @@ class EchoPrintGUI:
         def save():
             new_name = entry_name.get().strip()
             if not new_name:
-                messagebox.showerror("Eroare", "Numele nu poate fi gol.", parent=dialog)
+                messagebox.showerror("Error", "Numele nu poate fi gol.", parent=dialog)
                 return
             if self.db.update_song_name(song_id, new_name):
                 dialog.destroy()
                 self.load_database_songs()
-                messagebox.showinfo("Succes", "Numele melodiei a fost actualizat cu succes.")
+                messagebox.showinfo("Success", "Numele melodiei a fost actualizat cu succes.")
             else:
-                messagebox.showerror("Eroare", "Actualizarea a eșuat.", parent=dialog)
+                messagebox.showerror("Error", "Actualizarea a eșuat.", parent=dialog)
                 
         btn_save = tk.Button(dialog, text="Salvează", font=FONT_BODY, bg=COLOR_ACCENT, fg=FG_MAIN, borderwidth=0, 
                              cursor="hand2", padx=15, pady=6, command=save)
@@ -354,14 +354,14 @@ class EchoPrintGUI:
         song_id = int(values[0])
         song_name = values[1]
         
-        confirm = messagebox.askyesno("Confirmare Ștergere", f"Sigur doriți să ștergeți melodia '{song_name}'?\nAceastă operațiune va șterge toate amprentele asociate ei din baza de date.")
+        confirm = messagebox.askyesno("Confirm Delete", f"Sigur doriți să ștergeți melodia '{song_name}'?\nAceastă operațiune va șterge toate amprentele asociate ei din baza de date.")
         if confirm:
             if self.db.delete_song(song_id):
                 self.load_database_songs()
                 self.load_search_history() # Reload history as references might be set to NULL
-                messagebox.showinfo("Succes", f"Melodia '{song_name}' a fost ștearsă din baza de date.")
+                messagebox.showinfo("Success", f"Melodia '{song_name}' a fost ștearsă din baza de date.")
             else:
-                messagebox.showerror("Eroare", "Ștergerea melodiei a eșuat.")
+                messagebox.showerror("Error", "Ștergerea melodiei a eșuat.")
 
     # ==========================================
     # TAB 3: SEARCH HISTORY WIDGETS
@@ -375,10 +375,10 @@ class EchoPrintGUI:
         
         # Columns: ID, Time, Source, Result, SNR, Score
         self.tree_history = ttk.Treeview(frame_table, columns=("id", "time", "source", "result", "snr", "score"), show="headings", yscrollcommand=scroll_y.set)
-        self.tree_history.heading("id", text="ID Istoric")
+        self.tree_history.heading("id", text="History ID")
         self.tree_history.heading("time", text="Dată / Oră")
-        self.tree_history.heading("source", text="Sursă Input")
-        self.tree_history.heading("result", text="Melodie Identificată")
+        self.tree_history.heading("source", text="Input Source")
+        self.tree_history.heading("result", text="Identified Song")
         self.tree_history.heading("snr", text="SNR Estimatic")
         self.tree_history.heading("score", text="Scor Potriviri")
         
@@ -420,9 +420,9 @@ class EchoPrintGUI:
         if confirm:
             if self.db.clear_history():
                 self.load_search_history()
-                messagebox.showinfo("Succes", "Istoricul căutărilor a fost golit.")
+                messagebox.showinfo("Success", "Istoricul căutărilor a fost golit.")
             else:
-                messagebox.showerror("Eroare", "Golirea istoricului a eșuat.")
+                messagebox.showerror("Error", "Golirea istoricului a eșuat.")
 
     # ==========================================
     # TAB 4: LEARNING & DIRECTORY WIDGETS
@@ -452,7 +452,7 @@ class EchoPrintGUI:
         existing_key = self.db.get_config_value("gemini_api_key") or ""
         self.entry_api_key.insert(0, existing_key)
         
-        btn_save_key = tk.Button(frame_key_input, text="Salvează Cheia", font=("Outfit", 10, "bold"), bg=COLOR_TEAL, fg=BG_MAIN, borderwidth=0, 
+        btn_save_key = tk.Button(frame_key_input, text="Save Key", font=("Outfit", 10, "bold"), bg=COLOR_TEAL, fg=BG_MAIN, borderwidth=0, 
                                  cursor="hand2", padx=15, command=self.save_gemini_api_key)
         btn_save_key.pack(side=tk.LEFT, ipady=2)
 
@@ -519,7 +519,7 @@ class EchoPrintGUI:
             
         dir_path = self.entry_dir_path.get().strip()
         if not dir_path or not os.path.isdir(dir_path):
-            messagebox.showerror("Eroare", "Folderul specificat nu este valid sau nu există.")
+            messagebox.showerror("Error", "Folderul specificat nu este valid sau nu există.")
             return
             
         self.is_processing = True
@@ -607,7 +607,7 @@ class EchoPrintGUI:
         self.is_processing = False
         self.btn_start_learn.configure(state=tk.NORMAL, bg=COLOR_ACCENT)
         self.load_database_songs() # Reload db tab treeview
-        messagebox.showinfo("Succes", "Scanarea și procesarea folderului au fost finalizate.")
+        messagebox.showinfo("Success", "Scanarea și procesarea folderului au fost finalizate.")
 
     # ==========================================
     # WORKER THREAD FOR AUDIO RECOGNITION
@@ -621,11 +621,11 @@ class EchoPrintGUI:
         # Check source inputs
         if source == "Fișier Audio (.mp3, .wav)":
             if not self.selected_file_path or not os.path.isfile(self.selected_file_path):
-                messagebox.showerror("Eroare", "Te rog selectează un fișier audio valid din calculator.")
+                messagebox.showerror("Error", "Te rog selectează un fișier audio valid din calculator.")
                 return
                 
         self.is_processing = True
-        self.btn_identify.configure(state=tk.DISABLED, bg=BG_FIELD, text="🔍 SE PROCESEAZĂ...")
+        self.btn_identify.configure(state=tk.DISABLED, bg=BG_FIELD, text="🔍 PROCESSING...")
         
         # Show Progress elements
         self.progress_bar.pack(fill=tk.X, padx=20, pady=5)
@@ -644,7 +644,7 @@ class EchoPrintGUI:
         
         # Initialize Audio Strategy (Strategy Pattern)
         strategy = None
-        source_name = "Microfon"
+        source_name = "Microphone"
         
         if source == "Fișier Audio (.mp3, .wav)":
             strategy = FileInputStrategy(self.selected_file_path)
@@ -654,7 +654,7 @@ class EchoPrintGUI:
             source_name = "Mock Audio"
         else:
             strategy = MicrophoneInputStrategy()
-            source_name = "Microfon"
+            source_name = "Microphone"
             
         try:
             # UI animation simulate for duration
@@ -777,7 +777,7 @@ class EchoPrintGUI:
 
     def recognition_success(self, song_name, score, recs, trivia_text, lyrics_text):
         self.is_processing = False
-        self.btn_identify.configure(state=tk.NORMAL, bg=COLOR_ACCENT, text="🔍 IDENTIFICĂ ACUM")
+        self.btn_identify.configure(state=tk.NORMAL, bg=COLOR_ACCENT, text="🔍 IDENTIFY NOW")
         self.progress_bar.pack_forget()
         
         self.lbl_song_result.configure(text=f"🎵 MELODIE RECUNOSCUTĂ:\n{song_name}", fg=COLOR_TEAL)
@@ -800,7 +800,7 @@ class EchoPrintGUI:
 
     def recognition_failed(self, reason, source_name, snr, score):
         self.is_processing = False
-        self.btn_identify.configure(state=tk.NORMAL, bg=COLOR_ACCENT, text="🔍 IDENTIFICĂ ACUM")
+        self.btn_identify.configure(state=tk.NORMAL, bg=COLOR_ACCENT, text="🔍 IDENTIFY NOW")
         self.progress_bar.pack_forget()
         
         self.lbl_song_result.configure(text=reason, fg=COLOR_RED)
@@ -818,9 +818,9 @@ class EchoPrintGUI:
     def save_gemini_api_key(self):
         key_val = self.entry_api_key.get().strip()
         if self.db.set_config_value("gemini_api_key", key_val):
-            messagebox.showinfo("Succes", "Cheia Gemini API a fost salvată cu succes!")
+            messagebox.showinfo("Success", "Cheia Gemini API a fost salvată cu succes!")
         else:
-            messagebox.showerror("Eroare", "Nu s-a putut salva cheia în baza de date.")
+            messagebox.showerror("Error", "Nu s-a putut salva cheia în baza de date.")
 
     def update_text_widget(self, widget, text):
         widget.configure(state=tk.NORMAL)

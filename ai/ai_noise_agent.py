@@ -44,16 +44,16 @@ class AINoiseAgent:
         # Rating logic
         if rms < 0.005:
             rating = "TOO_LOW"
-            reason = "Volumul este mult prea încet sau microfonul este oprit"
+            reason = "Volume is way too low or the microphone is muted"
         elif clipping_pct > 5.0:
             rating = "DISTORTED"
-            reason = "Sunetul este distorsionat (clipping). Redu volumul sau distanța"
+            reason = "Sound is distorted (clipping). Reduce volume or distance"
         elif snr < 10.0:
             rating = "NOISY"
-            reason = "Zgomot de fundal ridicat"
+            reason = "High background noise"
         else:
             rating = "EXCELLENT"
-            reason = "Calitate excelentă pentru recunoaștere"
+            reason = "Excellent quality for recognition"
 
         return {
             "rating": rating,

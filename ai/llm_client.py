@@ -57,30 +57,30 @@ class GeminiLLMClient:
                     if parts:
                         return parts[0].get("text", "")
                 
-                return "[Eroare] Răspunsul API-ului Gemini nu conține text."
+                return "[Error] The Gemini API response does not contain text."
         except urllib.error.HTTPError as e:
             err_msg = e.read().decode("utf-8")
             raise RuntimeError(f"HTTP Error {e.code}: {err_msg}")
         except Exception as e:
-            raise RuntimeError(f"Eroare de conexiune Gemini API: {str(e)}")
+            raise RuntimeError(f"Gemini API connection error: {str(e)}")
 
     def generate(self, prompt: str, fallback_type: str, song_name: str) -> str:
         """
-        Încearcă să apeleze Gemini API. 
-        Dacă cheia lipsește sau apelul eșuează, returnează un răspuns offline simulat (Mock).
+        Tries to call Gemini API.
+        If the key is missing or the call fails, returns a simulated offline response (Mock).
         """
         api_key = self.get_api_key()
         if not api_key:
-            return self._get_mock_response(fallback_type, song_name, "Cheia API nu este configurată (Mod Offline Mock)")
+            return self._get_mock_response(fallback_type, song_name, "API key is not configured (Offline Mock Mode)")
         
         try:
             return self.call_gemini_api(prompt)
         except Exception as e:
             print(f"[-] Gemini API call failed, falling back to mock: {e}")
-            return self._get_mock_response(fallback_type, song_name, f"Eroare API ({str(e)}) - Mod Offline Mock activat")
+            return self._get_mock_response(fallback_type, song_name, f"API Error ({str(e)}) - Offline Mock Mode activated")
 
     def _get_mock_response(self, fallback_type: str, song_name: str, notice: str) -> str:
-        """Generează răspunsuri offline convingătoare în funcție de melodie."""
+        """Generates convincing offline mock responses based on the song."""
         # Normalize name for better mock matching
         song_lower = song_name.lower()
         
@@ -95,66 +95,66 @@ class GeminiLLMClient:
                 return (
                     f"[{notice}]\n\n"
                     "🎤 **Artist Bio: The Eagles**\n"
-                    "The Eagles este una dintre cele mai de succes trupe rock americane din anii '70, "
-                    "cunoscută pentru armoniile lor vocale strânse și sound-ul country-rock rafinat.\n\n"
-                    f"🎵 **Trivia despre '{title_part}':**\n"
-                    "1. Piesa a fost lansată în 1977 și a câștigat Premiul Grammy pentru Record of the Year în 1978.\n"
-                    "2. Textul misterios a stârnit numeroase speculații, dar membrii trupei au declarat că piesa vorbește despre excesul american, materialism și autodistrugere.\n"
-                    "3. Soloul final de chitară, interpretat de Don Felder și Joe Walsh, este considerat unul dintre cele mai bune din istoria muzicii rock."
+                    "The Eagles is one of the most successful American rock bands of the '70s, "
+                    "known for their tight vocal harmonies and refined country-rock sound.\n\n"
+                    f"🎵 **Trivia about '{title_part}':**\n"
+                    "1. The song was released in 1977 and won the Grammy Award for Record of the Year in 1978.\n"
+                    "2. The mysterious lyrics sparked numerous speculations, but the band members stated that the song talks about American excess, materialism, and self-destruction.\n"
+                    "3. The iconic final guitar solo, performed by Don Felder and Joe Walsh, is widely considered one of the greatest in rock history."
                 )
             elif "billie jean" in song_lower:
                 return (
                     f"[{notice}]\n\n"
                     "🎤 **Artist Bio: Michael Jackson**\n"
-                    "Cunoscut ca 'Regele Muzicii Pop', Michael Jackson a transformat muzica, dansul și arta videoclipurilor muzicale în fenomene culturale globale.\n\n"
-                    f"🎵 **Trivia despre '{title_part}':**\n"
-                    "1. Piesa a fost un hit masiv de pe legendarul album 'Thriller' (1982), cel mai bine vândut album din toate timpurile.\n"
-                    "2. Producătorul Quincy Jones nu a dorit inițial piesa pe album și a vrut să schimbe numele în 'Not My Lover' pentru a evita confuzia cu o tenismenă.\n"
-                    "3. Jackson a introdus faimosul dans 'Moonwalk' pentru prima dată în timpul interpretării live a acestei piese la emisiunea Motown 25."
+                    "Known as the 'King of Pop', Michael Jackson transformed music, dance, and music video art into global cultural phenomena.\n\n"
+                    f"🎵 **Trivia about '{title_part}':**\n"
+                    "1. The song was a massive hit from the legendary album 'Thriller' (1982), the best-selling album of all time.\n"
+                    "2. Producer Quincy Jones initially did not want the song on the album and wanted to rename it to 'Not My Lover' to avoid confusion with a tennis player.\n"
+                    "3. Jackson introduced the famous 'Moonwalk' dance for the first time during his live performance of this song on the Motown 25 special."
                 )
             else:
                 return (
                     f"[{notice}]\n\n"
                     f"🎤 **Artist Bio: {artist_part}**\n"
-                    f"Un artist remarcabil în scena muzicală, apreciat pentru stilul unic și contribuția la genul său.\n\n"
-                    f"🎵 **Trivia despre '{title_part}':**\n"
-                    f"1. Melodia '{title_part}' este o creație de referință în portofoliul {artist_part}, atrăgând aprecierile criticilor.\n"
-                    "2. Din punct de vedere muzical, piesa folosește o structură armonică expresivă care pune în valoare calitățile interpretative.\n"
-                    "3. A fost primită cu entuziasm de fani, devenind rapid o piesă îndrăgită în concertele live."
+                    f"A remarkable artist in the music scene, appreciated for their unique style and contribution to the genre.\n\n"
+                    f"🎵 **Trivia about '{title_part}':**\n"
+                    f"1. The song '{title_part}' is a landmark creation in {artist_part}'s portfolio, attracting critical acclaim.\n"
+                    "2. Musically, the track features an expressive harmonic structure that highlights the artist's performance qualities.\n"
+                    "3. It was enthusiastically received by fans, quickly becoming a favorite in live concerts."
                 )
         
         elif fallback_type == "lyrics":
             if "hotel california" in song_lower:
                 return (
                     f"[{notice}]\n\n"
-                    f"🔍 **Analiză Mesaj & Semnificație ('{title_part}'):**\n"
-                    "Piesa folosește metafora unui hotel de lux din care 'poți pleca oricând vrei, dar pe care nu îl poți părăsi niciodată' "
-                    "pentru a descrie capcana materialismului, dependența de stilul de viață decadent din California și iluzia succesului facil.\n\n"
-                    "❤️ **Sentiment dominant:** Melancolic, Misterios și Avertizor\n\n"
-                    "🇷🇴 **Rezumat Versuri (Tradus în Română):**\n"
-                    "Călătorul obosit oprește la un hotel primitor, dar realizează curând că locul este o închisoare de aur, "
-                    "populată de oaspeți prizonieri ai propriilor vicii și iluzii, incapabili să scape din 'raiul' transformat în coșmar."
+                    f"🔍 **Message & Meaning Analysis ('{title_part}'):**\n"
+                    "The song uses the metaphor of a luxury hotel where 'you can check out any time you like, but you can never leave' "
+                    "to describe the trap of materialism, addiction to the decadent California lifestyle, and the illusion of easy success.\n\n"
+                    "❤️ **Dominant Sentiment:** Melancholic, Mysterious, and Warning\n\n"
+                    "📝 **Lyrics Summary:**\n"
+                    "A tired traveler stops at a welcoming hotel, but soon realizes the place is a gilded cage, "
+                    "populated by guests who are prisoners of their own vices and illusions, unable to escape from a 'paradise' turned nightmare."
                 )
             elif "billie jean" in song_lower:
                 return (
                     f"[{notice}]\n\n"
-                    f"🔍 **Analiză Mesaj & Semnificație ('{title_part}'):**\n"
-                    "Piesa prezintă povestea unei femei care susține în mod fals că protagonistul este tatăl copilului ei. "
-                    "Tema centrală abordează paranoia, presiunea faimei și responsabilitatea personală, avertizând să fim atenți pe cine iubim și ce promisiuni facem.\n\n"
-                    "❤️ **Sentiment dominant:** Tensionat, Paranoic și Alert\n\n"
-                    "🇷🇴 **Rezumat Versuri (Tradus în Română):**\n"
-                    "Billie Jean susține că eu sunt tatăl copilului ei, dar ea nu este iubita mea, iar băiatul nu este fiul meu. "
-                    "Mama mea mereu m-a sfătuit: ai grijă ce faci, nu umbla prin jur frângând inimi și ai grijă ce minciuni spui, pentru că minciuna devine adevăr."
+                    f"🔍 **Message & Meaning Analysis ('{title_part}'):**\n"
+                    "The song tells the story of a woman who falsely claims the protagonist is the father of her child. "
+                    "The central theme addresses paranoia, the pressures of fame, and personal responsibility, warning us to be careful of who we love and what promises we make.\n\n"
+                    "❤️ **Dominant Sentiment:** Tense, Paranoid, and Alert\n\n"
+                    "📝 **Lyrics Summary:**\n"
+                    "Billie Jean claims I am the father of her child, but she is not my lover, and the kid is not my son. "
+                    "My mother always advised me: be careful of what you do, don't go around breaking girls' hearts, and be careful of what you say, because the lie becomes the truth."
                 )
             else:
                 return (
                     f"[{notice}]\n\n"
-                    f"🔍 **Analiză Mesaj & Semnificație ('{title_part}'):**\n"
-                    f"Piesa '{title_part}' explorează teme universale legate de experiențele umane, trăirile emoționale profunde sau reflecții asupra vieții de zi cu zi.\n\n"
-                    "❤️ **Sentiment dominant:** Emoționant, Nostalgic și Reflexiv\n\n"
-                    "🇷🇴 **Rezumat Versuri (Tradus în Română):**\n"
-                    "Versurile evocă o stare de introspecție, subliniind importanța momentului prezent și relațiile interumane. "
-                    "Traducerea liberă a mesajului pune accentul pe speranță, depășirea momentelor grele și regăsirea de sine."
+                    f"🔍 **Message & Meaning Analysis ('{title_part}'):**\n"
+                    f"The song '{title_part}' explores universal themes related to human experiences, deep emotional feelings, or reflections on daily life.\n\n"
+                    "❤️ **Dominant Sentiment:** Moving, Nostalgic, and Reflective\n\n"
+                    "📝 **Lyrics Summary:**\n"
+                    "The lyrics evoke a state of introspection, highlighting the importance of the present moment and human connections. "
+                    "The message emphasizes hope, overcoming difficult times, and self-discovery."
                 )
         
         return f"[{notice}]\nMock response for {song_name} ({fallback_type})"

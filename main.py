@@ -1,5 +1,14 @@
 import os
 import sys
+
+# Force UTF-8 encoding on Windows to prevent UnicodeEncodeError with Romanian diacritics
+if sys.platform.startswith('win'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass
+
 import hashlib
 import argparse
 from collections import Counter
@@ -28,7 +37,7 @@ def get_file_hash(file_path):
     return hasher.hexdigest()
 
 def learn_directory(directory_path, db):
-    print(f"[*] Caut fisiere audio in {directory_path}...")
+    print(f"[*] Searching for audio files in {directory_path}...")
     valid_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
     
     for root, _, files in os.walk(directory_path):
@@ -39,10 +48,10 @@ def learn_directory(directory_path, db):
                 
                 # Check if song is already in db
                 if db.find_song_by_file_hash(file_hash):
-                    print(f"[*] Sari peste {file} (deja in baza de date)")
+                    print(f"[*] Skipping {file} (already in database)")
                     continue
                 
-                print(f"[*] Procesez: {file}...")
+                print(f"[*] Processing: {file}...")
                 try:
                     hashes = AudioProcessor.fingerprint_file(file_path)
                     song_id = db.insert_song(file, file_hash)
@@ -62,15 +71,15 @@ def learn_directory(directory_path, db):
                                 features['spectral_flatness'], 
                                 features['zero_crossing_rate']
                             )
-                            print(f"    [+] Caracteristici extrase: BPM={features['bpm']:.1f}, Centroid={features['spectral_centroid']:.1f}")
+                            print(f"    [+] Features extracted: BPM={features['bpm']:.1f}, Centroid={features['spectral_centroid']:.1f}")
                         except Exception as fe:
-                            print(f"    [-] Nu s-au putut extrage caracteristicile AI: {fe}")
+                            print(f"    [-] Could not extract AI features: {fe}")
                             
-                        print(f"    [+] Adaugat cu succes ({len(db_hashes)} amprente)")
+                        print(f"    [+] Successfully added ({len(db_hashes)} fingerprints)")
                 except Exception as e:
-                    print(f"    [-] Eroare la procesarea {file}: {e}")
+                    print(f"    [-] Error processing {file}: {e}")
 
-def recognize_audio(duration, db, strategy=None, source_name="Microfon"):
+def recognize_audio(duration, db, strategy=None, source_name="Microphone"):
     # Strategy injection (Strategy Design Pattern)
     recorder = AudioRecorder(strategy=strategy, sample_rate=22050)
     audio_data = recorder.record(duration_seconds=duration)
@@ -80,38 +89,38 @@ def recognize_audio(duration, db, strategy=None, source_name="Microfon"):
     quality = noise_agent.assess_quality(audio_data)
     
     print("\n" + "-"*50)
-    print(f"[AI Quality Agent] Calitate semnal: {quality['rating']}")
-    print(f"[AI Quality Agent] SNR estimat: {quality['snr']:.1f} dB")
-    print(f"[AI Quality Agent] Clipping (distorsiune): {quality['clipping']:.2f}%")
-    print(f"[AI Quality Agent] Recomandare: {quality['reason']}")
+    print(f"[AI Quality Agent] Signal Quality: {quality['rating']}")
+    print(f"[AI Quality Agent] Estimated SNR: {quality['snr']:.1f} dB")
+    print(f"[AI Quality Agent] Clipping (distortion): {quality['clipping']:.2f}%")
+    print(f"[AI Quality Agent] Recommendation: {quality['reason']}")
     print("-"*50 + "\n")
     
     if quality['rating'] == 'TOO_LOW':
-        print("[-] Sunetul captat este prea slab. Recunoaștere anulată.")
+        print("[-] The captured sound is too weak. Recognition canceled.")
         # Log failure to history
         db.insert_history(source_name, None, quality['snr'], 0)
         return
         
     # 2. AI Denoising (Spectral Gating)
-    print("[*] Se aplică eliminarea zgomotului de fundal (denoising)...")
+    print("[*] Applying background noise removal (denoising)...")
     audio_clean = noise_agent.denoise(audio_data)
     
-    print("[*] Generare amprente pentru audio curățat...")
+    print("[*] Generating fingerprints for clean audio...")
     hashes = AudioProcessor.fingerprint_audio_data(audio_clean)
     
     if not hashes:
-        print("[-] Nu s-au putut extrage amprente din sunetul captat. Încearcă din nou.")
+        print("[-] Could not extract fingerprints from the captured sound. Try again.")
         db.insert_history(source_name, None, quality['snr'], 0)
         return
         
-    print(f"[*] S-au generat {len(hashes)} amprente. Caut potriviri în baza de date...")
+    print(f"[*] Generated {len(hashes)} fingerprints. Searching for matches in database...")
     
     # Extract just the hash strings to search in db
     hash_strings = [h[0] for h in hashes]
     matches = db.find_matches(hash_strings)
     
     if not matches:
-        print("[-] Nu am găsit nicio potrivire în baza de date.")
+        print("[-] No matches found in the database.")
         db.insert_history(source_name, None, quality['snr'], 0)
         return
         
@@ -132,7 +141,7 @@ def recognize_audio(duration, db, strategy=None, source_name="Microfon"):
                 song_diffs[song_id].append(diff)
                 
     if not song_diffs:
-        print("[-] Nu am găsit nicio aliniere validă.")
+        print("[-] No valid alignment found.")
         db.insert_history(source_name, None, quality['snr'], 0)
         return
         
@@ -150,14 +159,14 @@ def recognize_audio(duration, db, strategy=None, source_name="Microfon"):
     
     # Threshold for match
     if best_score < 5:
-        print(f"[-] Potrivire prea slabă (Scor: {best_score}). Melodia nu a fost recunoscută sigur.")
+        print(f"[-] Match too weak (Score: {best_score}). Song was not recognized with certainty.")
         db.insert_history(source_name, None, quality['snr'], best_score)
         return
         
     song_name = db.get_song_by_id(best_song_id)
     print("\n" + "="*50)
-    print(f"[!] MELODIE RECUNOSCUTĂ: {song_name}")
-    print(f"[!] SCOR ÎNCREDERE: {best_score} potriviri")
+    print(f"[!] RECOGNIZED SONG: {song_name}")
+    print(f"[!] CONFIDENCE SCORE: {best_score} matches")
     print("="*50 + "\n")
     
     # Log successful search in history
@@ -168,13 +177,13 @@ def recognize_audio(duration, db, strategy=None, source_name="Microfon"):
     recs = recommender.recommend_for_song(best_song_id, top_n=3)
     if recs:
         print("="*50)
-        print("[AI Recommendation Agent] Melodii similare recomandate:")
+        print("[AI Recommendation Agent] Recommended similar songs:")
         for i, rec in enumerate(recs, 1):
-            print(f"  {i}. {rec['song_name']} (Distanță metrică: {rec['distance']:.3f})")
+            print(f"  {i}. {rec['song_name']} (Distance metric: {rec['distance']:.3f})")
         print("="*50 + "\n")
 
     # 4. LLM Agents (Trivia & Lyrics)
-    print("[*] Interogare agenți LLM pentru trivia și versuri...")
+    print("[*] Querying LLM agents for trivia and lyrics...")
     from ai.llm_client import GeminiLLMClient
     from ai.ai_trivia_agent import AIMusicTriviaAgent
     from ai.ai_lyrics_agent import AILyricsAgent
@@ -197,13 +206,13 @@ def recognize_audio(duration, db, strategy=None, source_name="Microfon"):
     print("="*50 + "\n")
 
 def main():
-    parser = argparse.ArgumentParser(description="EchoPrint - Aplicație de recunoaștere audio cu agenți AI (MDS)")
-    parser.add_argument('mode', nargs='?', choices=['learn', 'listen'], help="Modul de funcționare: 'learn' (învață) sau 'listen' (ascultă)")
-    parser.add_argument('--dir', type=str, help="Directorul cu fișiere audio (necesar pentru 'learn')")
-    parser.add_argument('--duration', type=int, default=10, help="Durata de ascultare în secunde (pentru 'listen', default: 10)")
-    parser.add_argument('--file', type=str, help="Folosește un fișier audio ca input (opțiune pentru testare)")
-    parser.add_argument('--mock', action='store_true', help="Generează sunet artificial pentru testare (opțiune pentru testare)")
-    parser.add_argument('--gui', action='store_true', help="Lansează interfața grafică desktop a aplicației")
+    parser = argparse.ArgumentParser(description="EchoPrint - Audio Recognition Application with AI Agents (MDS)")
+    parser.add_argument('mode', nargs='?', choices=['learn', 'listen'], help="Operation mode: 'learn' (learn songs) or 'listen' (recognize sound)")
+    parser.add_argument('--dir', type=str, help="Directory with audio files (required for 'learn')")
+    parser.add_argument('--duration', type=int, default=10, help="Listening duration in seconds (for 'listen', default: 10)")
+    parser.add_argument('--file', type=str, help="Use an audio file as input (testing option)")
+    parser.add_argument('--mock', action='store_true', help="Generate synthetic sound for testing (testing option)")
+    parser.add_argument('--gui', action='store_true', help="Launch the desktop graphical user interface")
     
     args = parser.parse_args()
     
@@ -212,7 +221,7 @@ def main():
     
     if args.gui or (args.mode is None):
         # Launch graphical user interface
-        print("[*] Se lansează interfața grafică desktop (GUI)...")
+        print("[*] Launching desktop graphical user interface (GUI)...")
         from gui import EchoPrintGUI
         gui_app = EchoPrintGUI(db)
         gui_app.run()
@@ -221,23 +230,23 @@ def main():
     
     if args.mode == 'learn':
         if not args.dir:
-            print("[-] Trebuie să specifici un director folosind --dir")
+            print("[-] You must specify a directory using --dir")
             sys.exit(1)
         if not os.path.isdir(args.dir):
-            print(f"[-] Directorul {args.dir} nu există.")
+            print(f"[-] The directory {args.dir} does not exist.")
             sys.exit(1)
         learn_directory(args.dir, db)
         
     elif args.mode == 'listen':
         # Select Strategy (Strategy Design Pattern)
         strategy = None
-        source_name = "Microfon"
+        source_name = "Microphone"
         if args.file:
             if not os.path.isfile(args.file):
-                print(f"[-] Fișierul {args.file} nu există.")
+                print(f"[-] The file {args.file} does not exist.")
                 sys.exit(1)
             strategy = FileInputStrategy(args.file)
-            source_name = f"Fișier: {os.path.basename(args.file)}"
+            source_name = f"File: {os.path.basename(args.file)}"
         elif args.mock:
             strategy = MockInputStrategy()
             source_name = "Mock Audio"

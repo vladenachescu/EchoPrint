@@ -10,11 +10,11 @@ class AILyricsAgent:
         și oferă un rezumat al versurilor tradus în limba română.
         """
         prompt = (
-            f"Ești un critic muzical de renume și un fin analist literar. "
-            f"Analizează mesajul și versurile piesei '{song_name}'. "
-            f"Determină sentimentul predominant al piesei (de ex: melancolie, fericire, furie, nostalgie etc.) "
-            f"și oferă un rezumat coerent al versurilor în limba română. "
-            f"Răspunde direct, bine structurat cu titluri și bullet points. "
-            f"Nu adăuga introduceri sau concluzii formale."
+            f"You are a renowned music critic and fine literary analyst. "
+            f"Analyze the message and lyrics of the song '{song_name}'. "
+            f"Determine the predominant sentiment of the song (e.g., melancholy, happiness, anger, nostalgia, etc.) "
+            f"and provide a coherent summary of the lyrics in English. "
+            f"Respond directly, well-structured with headings and bullet points. "
+            f"Do not add any formal introductions or conclusions."
         )
         return self.llm_client.generate(prompt, fallback_type="lyrics", song_name=song_name)
