@@ -14,7 +14,7 @@ class MicrophoneInputStrategy(AudioInputStrategy):
         self.sample_rate = sample_rate
 
     def record(self, duration_seconds=5) -> np.ndarray:
-        print(f"[*] Înregistrare începută din microfon... ({duration_seconds} secunde)")
+        print(f"[*] Recording started from microphone... ({duration_seconds} seconds)")
         # Record audio
         recording = sd.rec(int(duration_seconds * self.sample_rate), 
                            samplerate=self.sample_rate, 
@@ -22,7 +22,7 @@ class MicrophoneInputStrategy(AudioInputStrategy):
                            dtype='float32')
         # Wait until recording is finished
         sd.wait()
-        print("[*] Înregistrare finalizată.")
+        print("[*] Recording finished.")
         # Flatten shape (samples, channels) to 1D array
         return recording.flatten()
 
@@ -32,7 +32,7 @@ class FileInputStrategy(AudioInputStrategy):
         self.sample_rate = sample_rate
 
     def record(self, duration_seconds=5) -> np.ndarray:
-        print(f"[*] Se încarcă audio din fișierul: {self.file_path}")
+        print(f"[*] Loading audio from file: {self.file_path}")
         # Load audio file, crop/take only duration_seconds
         y, sr = librosa.load(self.file_path, sr=self.sample_rate, duration=duration_seconds)
         return y
@@ -42,7 +42,7 @@ class MockInputStrategy(AudioInputStrategy):
         self.sample_rate = sample_rate
 
     def record(self, duration_seconds=5) -> np.ndarray:
-        print(f"[*] Generare semnal audio simulat (Mock)...")
+        print(f"[*] Generating simulated audio signal (Mock)...")
         # Generate a dummy sine wave signal + white noise
         num_samples = int(duration_seconds * self.sample_rate)
         t = np.linspace(0, duration_seconds, num_samples, endpoint=False)
