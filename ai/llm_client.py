@@ -7,7 +7,7 @@ from db.db_manager import DatabaseManager
 class GeminiLLMClient:
     def __init__(self, db_manager=None):
         self.db = db_manager or DatabaseManager()
-        self.api_url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
+        self.api_url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent"
 
     def get_api_key(self):
         """Preia cheia API din tabela de configurare SQLite."""
