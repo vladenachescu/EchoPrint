@@ -1,4 +1,4 @@
-# Graphical User Interface package for PyShazam
+# Graphical User Interface package for EchoPrint
 
-from gui.gui import PyShazamGUI
+from gui.gui import EchoPrintGUI
 

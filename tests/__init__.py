@@ -1,1 +1,1 @@
-# Tests package for PyShazam
+# Tests package for EchoPrint

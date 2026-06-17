@@ -1,6 +1,6 @@
-# PyShazam: Rapoarte de Dezvoltare (Weeks 7 & 8)
+# EchoPrint: Rapoarte de Dezvoltare (Weeks 7 & 8)
 
-Acest document reunește rapoartele tehnice și bunele practici de inginerie software aplicate în cadrul proiectului **PyShazam**, conform cerințelor disciplinare MDS pentru săptămânile 7 și 8.
+Acest document reunește rapoartele tehnice și bunele practici de inginerie software aplicate în cadrul proiectului **EchoPrint**, conform cerințelor disciplinare MDS pentru săptămânile 7 și 8.
 
 ---
 
@@ -18,7 +18,7 @@ Un raport de eroare (bug report) de calitate oferă dezvoltatorilor toate inform
 
 ---
 
-### Studiu de Caz: Bug-uri reale identificate și remediate în PyShazam
+### Studiu de Caz: Bug-uri reale identificate și remediate în EchoPrint
 
 #### 🐛 Bug 1: Eroare de Threading în SQLite (`sqlite3.ProgrammingError`)
 *   **Descriere**: La lansarea recunoașterii audio în GUI, interfața grafică se bloca sau consola afișa o eroare fatală atunci când thread-ul de fundal încerca să salveze rezultatele în baza de date.
@@ -50,7 +50,7 @@ Un raport de eroare (bug report) de calitate oferă dezvoltatorilor toate inform
 
 ## 2. Fluxul de Lucru Git & Pull Requests (PR)
 
-Pentru a menține calitatea codului într-o echipă, proiectul PyShazam folosește un flux bazat pe ramificații (*Feature Branches*) și Pull Requests.
+Pentru a menține calitatea codului într-o echipă, proiectul EchoPrint folosește un flux bazat pe ramificații (*Feature Branches*) și Pull Requests.
 
 ```mermaid
 gitGraph
@@ -100,7 +100,7 @@ gitGraph
     ```python
     class DatabaseManager:
         _instance = None
-        def __new__(cls, db_path='shazam_clone.db', *args, **kwargs):
+        def __new__(cls, db_path='echoprint.db', *args, **kwargs):
             if not cls._instance:
                 cls._instance = super(DatabaseManager, cls).__new__(cls)
                 cls._instance._initialized = False

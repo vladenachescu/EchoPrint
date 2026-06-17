@@ -10,7 +10,7 @@ class TestDatabaseManager(unittest.TestCase):
     def setUp(self):
         # Reset the Singleton instance to ensure a fresh test database connection
         DatabaseManager._instance = None
-        self.db_path = 'test_shazam_clone.db'
+        self.db_path = 'test_echoprint.db'
         self.db = DatabaseManager(self.db_path)
 
     def tearDown(self):

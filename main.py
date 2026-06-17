@@ -197,7 +197,7 @@ def recognize_audio(duration, db, strategy=None, source_name="Microfon"):
     print("="*50 + "\n")
 
 def main():
-    parser = argparse.ArgumentParser(description="PyShazam - Aplicație de recunoaștere audio cu agenți AI (MDS)")
+    parser = argparse.ArgumentParser(description="EchoPrint - Aplicație de recunoaștere audio cu agenți AI (MDS)")
     parser.add_argument('mode', nargs='?', choices=['learn', 'listen'], help="Modul de funcționare: 'learn' (învață) sau 'listen' (ascultă)")
     parser.add_argument('--dir', type=str, help="Directorul cu fișiere audio (necesar pentru 'learn')")
     parser.add_argument('--duration', type=int, default=10, help="Durata de ascultare în secunde (pentru 'listen', default: 10)")
@@ -208,13 +208,13 @@ def main():
     args = parser.parse_args()
     
     # Singleton DatabaseManager usage
-    db = DatabaseManager('shazam_clone.db')
+    db = DatabaseManager('echoprint.db')
     
     if args.gui or (args.mode is None):
         # Launch graphical user interface
         print("[*] Se lansează interfața grafică desktop (GUI)...")
-        from gui import PyShazamGUI
-        gui_app = PyShazamGUI(db)
+        from gui import EchoPrintGUI
+        gui_app = EchoPrintGUI(db)
         gui_app.run()
         db.close()
         return

@@ -30,7 +30,7 @@ BG_CARD = "#1C1C24"       # Dark grey for cards
 BG_FIELD = "#282833"      # Lighter grey for input fields
 FG_MAIN = "#FFFFFF"       # White text
 FG_MUTED = "#8E8E9F"      # Muted grey text
-COLOR_ACCENT = "#0088FF"   # Shazam-like Neon Blue
+COLOR_ACCENT = "#0088FF"   # Modern Neon Neon Blue
 COLOR_TEAL = "#00E5FF"     # Neon Teal
 COLOR_GREEN = "#00E676"    # Success Green
 COLOR_RED = "#FF3366"      # Soft Red for danger/delete
@@ -39,11 +39,11 @@ FONT_SUBTITLE = ("Outfit", 12, "bold")
 FONT_BODY = ("Outfit", 10)
 FONT_CONSOLE = ("Consolas", 9)
 
-class PyShazamGUI:
+class EchoPrintGUI:
     def __init__(self, db: DatabaseManager):
         self.db = db
         self.root = tk.Tk()
-        self.root.title("PyShazam - Recunoaștere Audio MDS")
+        self.root.title("EchoPrint - Recunoaștere Audio MDS")
         self.root.geometry("850x650")
         self.root.minsize(800, 600)
         self.root.configure(bg=BG_MAIN)
@@ -143,11 +143,11 @@ class PyShazamGUI:
         self.slider_duration.set(10)
         self.slider_duration.pack(fill=tk.X, padx=20, pady=5)
         
-        # Action button (SHAZAM)
-        self.btn_shazam = tk.Button(panel_left, text="🔍 IDENTIFICĂ ACUM", font=("Outfit", 12, "bold"), 
+        # Action button (IDENTIFY)
+        self.btn_identify = tk.Button(panel_left, text="🔍 IDENTIFICĂ ACUM", font=("Outfit", 12, "bold"), 
                                     bg=COLOR_ACCENT, fg=FG_MAIN, activebackground=COLOR_ACCENT, activeforeground=FG_MAIN,
                                     borderwidth=0, cursor="hand2", command=self.start_recognition_thread)
-        self.btn_shazam.pack(fill=tk.X, side=tk.BOTTOM, padx=20, pady=20, ipady=8)
+        self.btn_identify.pack(fill=tk.X, side=tk.BOTTOM, padx=20, pady=20, ipady=8)
         
         # Right Panel (Results & AI Reports)
         panel_right = tk.Frame(self.tab_recognition, bg=BG_MAIN)
@@ -625,7 +625,7 @@ class PyShazamGUI:
                 return
                 
         self.is_processing = True
-        self.btn_shazam.configure(state=tk.DISABLED, bg=BG_FIELD, text="🔍 SE PROCESEAZĂ...")
+        self.btn_identify.configure(state=tk.DISABLED, bg=BG_FIELD, text="🔍 SE PROCESEAZĂ...")
         
         # Show Progress elements
         self.progress_bar.pack(fill=tk.X, padx=20, pady=5)
@@ -777,7 +777,7 @@ class PyShazamGUI:
 
     def recognition_success(self, song_name, score, recs, trivia_text, lyrics_text):
         self.is_processing = False
-        self.btn_shazam.configure(state=tk.NORMAL, bg=COLOR_ACCENT, text="🔍 IDENTIFICĂ ACUM")
+        self.btn_identify.configure(state=tk.NORMAL, bg=COLOR_ACCENT, text="🔍 IDENTIFICĂ ACUM")
         self.progress_bar.pack_forget()
         
         self.lbl_song_result.configure(text=f"🎵 MELODIE RECUNOSCUTĂ:\n{song_name}", fg=COLOR_TEAL)
@@ -800,7 +800,7 @@ class PyShazamGUI:
 
     def recognition_failed(self, reason, source_name, snr, score):
         self.is_processing = False
-        self.btn_shazam.configure(state=tk.NORMAL, bg=COLOR_ACCENT, text="🔍 IDENTIFICĂ ACUM")
+        self.btn_identify.configure(state=tk.NORMAL, bg=COLOR_ACCENT, text="🔍 IDENTIFICĂ ACUM")
         self.progress_bar.pack_forget()
         
         self.lbl_song_result.configure(text=reason, fg=COLOR_RED)
@@ -835,6 +835,6 @@ class PyShazamGUI:
         self.root.mainloop()
 
 if __name__ == "__main__":
-    db = DatabaseManager('shazam_clone.db')
-    app = PyShazamGUI(db)
+    db = DatabaseManager('echoprint.db')
+    app = EchoPrintGUI(db)
     app.run()

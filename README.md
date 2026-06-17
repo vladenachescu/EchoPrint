@@ -1,6 +1,6 @@
-# PyShazam (MDS Project)
+# EchoPrint (MDS Project)
 
-PyShazam este o aplicație de recunoaștere audio dezvoltată în Python, inspirată de algoritmul de fingerprinting utilizat de Shazam. Proiectul este structurat conform cerințelor academice și specificațiilor oficiale pentru disciplina **Metode de Dezvoltare Software (MDS)** de la FMI Unibuc.
+EchoPrint este o aplicație de recunoaștere audio dezvoltată în Python, inspirată de algoritmul de fingerprinting utilizat de Shazam. Proiectul este structurat conform cerințelor academice și specificațiilor oficiale pentru disciplina **Metode de Dezvoltare Software (MDS)** de la FMI Unibuc.
 
 Aplicația scanează și „învață” melodii dintr-o bibliotecă muzicală locală (generând amprente spectrale), iar apoi poate recunoaște o melodie ascultată live prin microfon sau dintr-un fișier, curățând zgomotul de fundal cu AI, oferind recomandări similare și logând rezultatele într-un istoric persistat în baza de date.
 
@@ -107,7 +107,7 @@ classDiagram
     }
     AILyricsAgent --> GeminiLLMClient : uses
     
-    class PyShazamGUI {
+    class EchoPrintGUI {
         -db: DatabaseManager
         -is_processing: bool
         -selected_file_path: str
@@ -121,12 +121,12 @@ classDiagram
         +start_learning_thread()
         +run()
     }
-    PyShazamGUI --> DatabaseManager : CRUD & History
-    PyShazamGUI --> AINoiseAgent : Denoise Check
-    PyShazamGUI --> AIRecommendationAgent : Recommendations
-    PyShazamGUI --> AudioRecorder : Strategy Record
-    PyShazamGUI --> AIMusicTriviaAgent : queries
-    PyShazamGUI --> AILyricsAgent : queries
+    EchoPrintGUI --> DatabaseManager : CRUD & History
+    EchoPrintGUI --> AINoiseAgent : Denoise Check
+    EchoPrintGUI --> AIRecommendationAgent : Recommendations
+    EchoPrintGUI --> AudioRecorder : Strategy Record
+    EchoPrintGUI --> AIMusicTriviaAgent : queries
+    EchoPrintGUI --> AILyricsAgent : queries
 ```
 
 ---
@@ -135,7 +135,7 @@ classDiagram
 
 Aplicația implementează în totalitate specificațiile din fișa oficială a proiectului:
 
-1. **Stocarea melodiilor într-o bază de date**: Baza de date SQLite (`shazam_clone.db`) păstrează melodiile, amprentele unice și caracteristicile AI.
+1. **Stocarea melodiilor într-o bază de date**: Baza de date SQLite (`echoprint.db`) păstrează melodiile, amprentele unice și caracteristicile AI.
 2. **Adăugarea, ștergerea și modificarea intrărilor**:
    - *Adăugare*: Prin tab-ul de învățare sau din CLI.
    - *Ștergere*: Ștergerea completă a unei melodii și a amprentelor/trăsăturilor sale asociate direct din tabel (cu constrângere `ON DELETE CASCADE` activată).

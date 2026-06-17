@@ -1,6 +1,6 @@
-# Project Backlog - PyShazam (MDS)
+# Project Backlog - EchoPrint (MDS)
 
-Acest document conține backlog-ul de produs și planificarea pe sprint-uri pentru proiectul **PyShazam**.
+Acest document conține backlog-ul de produs și planificarea pe sprint-uri pentru proiectul **EchoPrint**.
 
 ## Product Backlog (User Stories & Tasks)
 

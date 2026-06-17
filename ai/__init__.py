@@ -1,4 +1,4 @@
-# AI agents package for PyShazam
+# AI agents package for EchoPrint
 
 from ai.ai_noise_agent import AINoiseAgent
 from ai.ai_recommendation_agent import AIRecommendationAgent
