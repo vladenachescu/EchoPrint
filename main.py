@@ -22,7 +22,7 @@ def get_file_hash(file_path):
 
 def learn_directory(directory_path, db):
     print(f"[*] Caut fisiere audio in {directory_path}...")
-    valid_extensions = ('.mp3', '.wav', '.ogg', '.flac')
+    valid_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
     
     for root, _, files in os.walk(directory_path):
         for file in files:

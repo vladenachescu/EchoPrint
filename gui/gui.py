@@ -525,7 +525,7 @@ class PyShazamGUI:
     def bg_learning_task(self, dir_path):
         self.log_console("\n" + "="*50)
         self.log_console(f"[*] Caut fișiere audio în {dir_path}...")
-        valid_extensions = ('.mp3', '.wav', '.ogg', '.flac')
+        valid_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
         
         # Scan folder first
         audio_files = []
@@ -535,7 +535,7 @@ class PyShazamGUI:
                     audio_files.append(os.path.join(root, file))
                     
         if not audio_files:
-            self.log_console("[-] Nu s-au găsit fișiere audio acceptate (.mp3, .wav, .ogg, .flac).")
+            self.log_console("[-] Nu s-au găsit fișiere audio acceptate (.mp3, .wav, .ogg, .flac, .m4a).")
             self.learning_task_finished()
             return
             
