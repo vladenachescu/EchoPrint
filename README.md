@@ -316,3 +316,6 @@ self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
 
 ### 3. Erori HTTP 404 sau 429 la Gemini API
 Dacă apelurile Gemini LLM eșuează cu erori de rețea, aplicația va trece automat pe modul **Mock offline**, afișând texte coerente predefinite în panourile GUI, pentru a nu perturba deloc experiența utilizatorului. Modelul utilizat în mod implicit este **`gemini-2.5-flash-lite`** (endpoint `v1`), care oferă cel mai bun timp de răspuns și stabilitate pe conturile de utilizare gratuită.
+
+<!-- Test commit for username update -->
+
