@@ -64,20 +64,73 @@ class GeminiLLMClient:
         except Exception as e:
             raise RuntimeError(f"Gemini API connection error: {str(e)}")
 
-    def generate(self, prompt: str, fallback_type: str, song_name: str) -> str:
-        """
-        Tries to call Gemini API.
-        If the key is missing or the call fails, returns a simulated offline response (Mock).
-        """
-        api_key = self.get_api_key()
-        if not api_key:
-            return self._get_mock_response(fallback_type, song_name, "API key is not configured (Offline Mock Mode)")
+    def call_ollama_api(self, prompt: str, model_name: str = "llama3") -> str:
+        """Efectuează un apel HTTP direct către serverul local Ollama (implicit pe portul 11434)."""
+        url = "http://localhost:11434/api/generate"
+        data = {
+            "model": model_name,
+            "prompt": prompt,
+            "stream": False
+        }
+        
+        req_body = json.dumps(data).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=req_body,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
         
         try:
-            return self.call_gemini_api(prompt)
+            with urllib.request.urlopen(req, timeout=15) as response:
+                resp_data = json.loads(response.read().decode("utf-8"))
+                return resp_data.get("response", "")
         except Exception as e:
-            print(f"[-] Gemini API call failed, falling back to mock: {e}")
-            return self._get_mock_response(fallback_type, song_name, f"API Error ({str(e)}) - Offline Mock Mode activated")
+            raise RuntimeError(f"Ollama API connection error: {str(e)}")
+
+    def generate(self, prompt: str, fallback_type: str, song_name: str) -> str:
+        """
+        Tries to call the configured LLM API (Gemini or Ollama).
+        If the selected API fails, falls back to the other or to the Mock offline mode.
+        """
+        provider = self.db.get_config_value("ai_provider") or "gemini"
+        ollama_model = self.db.get_config_value("ollama_model") or "llama3"
+        
+        if provider == "gemini":
+            api_key = self.get_api_key()
+            if not api_key:
+                # If Gemini is not set, try local Ollama first before Mocking
+                try:
+                    print("[*] Gemini Key not set, trying local Ollama fallback...")
+                    return self.call_ollama_api(prompt, model_name=ollama_model)
+                except Exception:
+                    return self._get_mock_response(fallback_type, song_name, "API key is not configured (Offline Mock Mode)")
+            try:
+                return self.call_gemini_api(prompt)
+            except Exception as e:
+                print(f"[-] Gemini API call failed, trying local Ollama fallback... Error: {e}")
+                try:
+                    return self.call_ollama_api(prompt, model_name=ollama_model)
+                except Exception:
+                    return self._get_mock_response(fallback_type, song_name, f"Gemini Error ({str(e)}) - Offline Mock Mode activated")
+                    
+        elif provider == "ollama":
+            try:
+                print(f"[*] Calling local Ollama API (Model: {ollama_model})...")
+                return self.call_ollama_api(prompt, model_name=ollama_model)
+            except Exception as e:
+                print(f"[-] Ollama API call failed, trying Gemini API fallback... Error: {e}")
+                api_key = self.get_api_key()
+                if api_key:
+                    try:
+                        return self.call_gemini_api(prompt)
+                    except Exception:
+                        pass
+                return self._get_mock_response(fallback_type, song_name, f"Ollama Error ({str(e)}) - Offline Mock Mode activated")
+                
+        else:
+            return self._get_mock_response(fallback_type, song_name, "Mock Mode manually selected")
+
 
     def _get_mock_response(self, fallback_type: str, song_name: str, notice: str) -> str:
         """Generates convincing offline mock responses based on the song."""

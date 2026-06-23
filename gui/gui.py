@@ -428,33 +428,59 @@ class EchoPrintGUI:
     # TAB 4: LEARNING & DIRECTORY WIDGETS
     # ==========================================
     def build_tab_learning(self):
-        # Settings area for Gemini API Key
+        # Settings area for LLM Configuration
         frame_settings = tk.Frame(self.tab_learning, bg=BG_CARD)
         frame_settings.pack(fill=tk.X, padx=10, pady=(10, 0))
         
-        lbl_settings_title = tk.Label(frame_settings, text="⚙️ Google Gemini API Configuration", font=FONT_TITLE, fg=FG_MAIN, bg=BG_CARD)
+        lbl_settings_title = tk.Label(frame_settings, text="⚙️ AI LLM Configuration", font=FONT_TITLE, fg=FG_MAIN, bg=BG_CARD)
         lbl_settings_title.pack(anchor=tk.W, padx=15, pady=(15, 5))
         
-        lbl_settings_desc = tk.Label(frame_settings, text="Enter your Gemini API key to enable intelligent trivia generation and real-time lyrics analysis.", 
+        lbl_settings_desc = tk.Label(frame_settings, text="Configure your AI provider (Google Gemini or local Ollama) for trivia generation and lyrics analysis.", 
                                      font=FONT_BODY, fg=FG_MUTED, bg=BG_CARD)
         lbl_settings_desc.pack(anchor=tk.W, padx=15, pady=(2, 10))
         
+        # Provider selection
+        frame_provider = tk.Frame(frame_settings, bg=BG_CARD)
+        frame_provider.pack(fill=tk.X, padx=15, pady=5)
+        
+        lbl_provider = tk.Label(frame_provider, text="AI Provider:", font=FONT_BODY, fg=FG_MAIN, bg=BG_CARD, width=15, anchor=tk.W)
+        lbl_provider.pack(side=tk.LEFT)
+        
+        self.var_ai_provider = tk.StringVar(value=self.db.get_config_value("ai_provider") or "gemini")
+        
+        rb_gemini = tk.Radiobutton(frame_provider, text="Google Gemini (Cloud)", variable=self.var_ai_provider, value="gemini",
+                                   font=FONT_BODY, fg=FG_MAIN, bg=BG_CARD, selectcolor=BG_CARD, activebackground=BG_CARD, activeforeground=FG_MAIN)
+        rb_gemini.pack(side=tk.LEFT, padx=10)
+        
+        rb_ollama = tk.Radiobutton(frame_provider, text="Ollama (Local)", variable=self.var_ai_provider, value="ollama",
+                                   font=FONT_BODY, fg=FG_MAIN, bg=BG_CARD, selectcolor=BG_CARD, activebackground=BG_CARD, activeforeground=FG_MAIN)
+        rb_ollama.pack(side=tk.LEFT, padx=10)
+        
+        # Gemini API Key Input
         frame_key_input = tk.Frame(frame_settings, bg=BG_CARD)
-        frame_key_input.pack(fill=tk.X, padx=15, pady=(5, 15))
+        frame_key_input.pack(fill=tk.X, padx=15, pady=5)
         
-        lbl_key = tk.Label(frame_key_input, text="Gemini API Key:", font=FONT_BODY, fg=FG_MAIN, bg=BG_CARD)
-        lbl_key.pack(side=tk.LEFT, padx=(0, 10))
+        lbl_key = tk.Label(frame_key_input, text="Gemini API Key:", font=FONT_BODY, fg=FG_MAIN, bg=BG_CARD, width=15, anchor=tk.W)
+        lbl_key.pack(side=tk.LEFT)
         
-        self.entry_api_key = tk.Entry(frame_key_input, bg=BG_FIELD, fg=FG_MAIN, insertbackground=FG_MAIN, borderwidth=0, font=FONT_BODY, width=50, show="*")
+        self.entry_api_key = tk.Entry(frame_key_input, bg=BG_FIELD, fg=FG_MAIN, insertbackground=FG_MAIN, borderwidth=0, font=FONT_BODY, width=40, show="*")
         self.entry_api_key.pack(side=tk.LEFT, padx=(0, 10), ipady=5)
+        self.entry_api_key.insert(0, self.db.get_config_value("gemini_api_key") or "")
         
-        # Load existing key
-        existing_key = self.db.get_config_value("gemini_api_key") or ""
-        self.entry_api_key.insert(0, existing_key)
+        # Ollama Model Input
+        frame_model_input = tk.Frame(frame_settings, bg=BG_CARD)
+        frame_model_input.pack(fill=tk.X, padx=15, pady=(5, 15))
         
-        btn_save_key = tk.Button(frame_key_input, text="Save Key", font=("Outfit", 10, "bold"), bg=COLOR_TEAL, fg=BG_MAIN, borderwidth=0, 
-                                 cursor="hand2", padx=15, command=self.save_gemini_api_key)
-        btn_save_key.pack(side=tk.LEFT, ipady=2)
+        lbl_model = tk.Label(frame_model_input, text="Ollama Model:", font=FONT_BODY, fg=FG_MAIN, bg=BG_CARD, width=15, anchor=tk.W)
+        lbl_model.pack(side=tk.LEFT)
+        
+        self.entry_ollama_model = tk.Entry(frame_model_input, bg=BG_FIELD, fg=FG_MAIN, insertbackground=FG_MAIN, borderwidth=0, font=FONT_BODY, width=40)
+        self.entry_ollama_model.pack(side=tk.LEFT, padx=(0, 10), ipady=5)
+        self.entry_ollama_model.insert(0, self.db.get_config_value("ollama_model") or "llama3")
+        
+        btn_save_settings = tk.Button(frame_model_input, text="Save Settings", font=("Outfit", 10, "bold"), bg=COLOR_TEAL, fg=BG_MAIN, borderwidth=0, 
+                                      cursor="hand2", padx=15, command=self.save_llm_settings)
+        btn_save_settings.pack(side=tk.LEFT, ipady=2)
 
         # Folder selection area
         frame_dir = tk.Frame(self.tab_learning, bg=BG_CARD)
@@ -815,12 +841,17 @@ class EchoPrintGUI:
         self.db.insert_history(source_name, None, snr, score)
         self.load_search_history() # Reload history list in Tab 3
 
-    def save_gemini_api_key(self):
+    def save_llm_settings(self):
         key_val = self.entry_api_key.get().strip()
-        if self.db.set_config_value("gemini_api_key", key_val):
-            messagebox.showinfo("Success", "Gemini API key saved successfully!")
+        provider_val = self.var_ai_provider.get()
+        model_val = self.entry_ollama_model.get().strip()
+        
+        if (self.db.set_config_value("gemini_api_key", key_val) and 
+            self.db.set_config_value("ai_provider", provider_val) and 
+            self.db.set_config_value("ollama_model", model_val)):
+            messagebox.showinfo("Success", "LLM settings saved successfully!")
         else:
-            messagebox.showerror("Error", "Failed to save the key to the database.")
+            messagebox.showerror("Error", "Failed to save settings to the database.")
 
     def update_text_widget(self, widget, text):
         widget.configure(state=tk.NORMAL)
