@@ -12,7 +12,7 @@ The application scans and "learns" songs from a local music library (generating 
 
 ---
 
-## ✨ Core Features
+##  Core Features
 
 The application is structured around four functional pillars:
 
@@ -33,14 +33,14 @@ The application is structured around four functional pillars:
 
 ### 4. Artificial Intelligence Agents
 The application orchestrates **4 autonomous AI agents** cooperating in a pipeline:
-*   🧼 **AI Noise Agent (`AINoiseAgent`)**: Evaluates raw audio quality metrics (SNR, RMS, clipping) and removes static background noise using spectral subtraction (*Spectral Gating*) prior to recognition.
-*   🎵 **AI Recommendation Agent (`AIRecommendationAgent`)**: Extracts tempo (BPM) and spectral features (flatness, centroid, zero-crossing rate) to suggest the top 3 similar tracks in the database using normalized Euclidean distance.
-*   💡 **AI Music Trivia Agent (`AIMusicTriviaAgent`)**: Queries the Gemini LLM to generate trivia facts about the song and a concise biography of the artist.
-*   📝 **AI Lyrics Agent (`AILyricsAgent`)**: Integrates Gemini LLM to analyze the song's lyrics, determine the dominant sentiment, and output a summary.
+*    **AI Noise Agent (`AINoiseAgent`)**: Evaluates raw audio quality metrics (SNR, RMS, clipping) and removes static background noise using spectral subtraction (*Spectral Gating*) prior to recognition.
+*    **AI Recommendation Agent (`AIRecommendationAgent`)**: Extracts tempo (BPM) and spectral features (flatness, centroid, zero-crossing rate) to suggest the top 3 similar tracks in the database using normalized Euclidean distance.
+*    **AI Music Trivia Agent (`AIMusicTriviaAgent`)**: Queries the Gemini LLM to generate trivia facts about the song and a concise biography of the artist.
+*    **AI Lyrics Agent (`AILyricsAgent`)**: Integrates Gemini LLM to analyze the song's lyrics, determine the dominant sentiment, and output a summary.
 
 ---
 
-## 🏗️ Architecture & Design Patterns
+##  Architecture & Design Patterns
 
 The project follows a modular structure, decoupling responsibilities across packages:
 
@@ -199,7 +199,7 @@ classDiagram
 
 ---
 
-## ⚙️ Prerequisites & Requirements
+##  Prerequisites & Requirements
 
 Before running the project, make sure you have installed:
 *   **Python 3.10+** (downloaded from the official site or Microsoft Store).
@@ -209,13 +209,10 @@ Before running the project, make sure you have installed:
 
 ---
 
-## 🚀 Installation & Configuration
+##  Installation & Configuration
 
 ### Step 1: Navigate to the Project Folder
 Open your terminal and change the directory to the project root:
-```cmd
-cd "C:\Users\jeanl\OneDrive\Desktop\MDS\PyShazam"
-```
 
 ### Step 2: Create and Activate a Virtual Environment (`venv`)
 It is recommended to run the app in an isolated virtual environment:
@@ -244,7 +241,7 @@ You can register your API Key directly inside the GUI application:
 
 ---
 
-## 🖥️ Running the Application
+##  Running the Application
 
 The application can be run in two different modes:
 
@@ -288,7 +285,7 @@ If you prefer the command line, run the following commands:
 
 ---
 
-## 🧪 Automated Testing
+##  Automated Testing
 
 The project is backed by a robust suite of **23 automated unit tests** covering audio DSP code, database Singleton patterns, CRUD operations, configuration values, search logs, and LLM clients (both live calls and offline Mock fallbacks).
 
@@ -299,7 +296,7 @@ python -m unittest discover -s tests -p "test_*.py"
 
 ---
 
-## ⚠️ Troubleshooting
+##  Troubleshooting
 
 ### 1. Windows CLI encoding error (UnicodeEncodeError)
 If you get a `UnicodeEncodeError: 'charmap' codec can't encode...` error when printing to the Windows CMD/PowerShell terminal, force the console to use UTF-8 by defining the environment variable at launch:
