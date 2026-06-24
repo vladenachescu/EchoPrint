@@ -157,7 +157,7 @@ class EchoPrintGUI:
         card_quality = tk.Frame(panel_right, bg=BG_CARD)
         card_quality.pack(fill=tk.X, pady=(0, 10))
         
-        lbl_q_title = tk.Label(card_quality, text="AI Quality Agent Report", font=FONT_SUBTITLE, fg=COLOR_TEAL, bg=BG_CARD)
+        lbl_q_title = tk.Label(card_quality, text="Quality Report", font=FONT_SUBTITLE, fg=COLOR_TEAL, bg=BG_CARD)
         lbl_q_title.pack(anchor=tk.W, padx=15, pady=(15, 5))
         
         self.lbl_q_status = tk.Label(card_quality, text="Ready for Analysis", font=("Outfit", 11, "bold"), fg=FG_MUTED, bg=BG_CARD)
@@ -704,7 +704,7 @@ class EchoPrintGUI:
             audio_data = recorder.record(duration_seconds=duration)
             
             # 1. Quality assess
-            self.root.after(0, lambda: self.lbl_song_result.configure(text="Evaluating audio quality with AI Agent..."))
+            self.root.after(0, lambda: self.lbl_song_result.configure(text="Evaluating audio quality..."))
             noise_agent = NoiseAgent(sample_rate=22050)
             quality = noise_agent.assess_quality(audio_data)
             
@@ -720,7 +720,7 @@ class EchoPrintGUI:
                 return
                 
             # 2. Denoising
-            self.root.after(0, lambda: self.lbl_song_result.configure(text="AI Agent: Applying spectral denoising..."))
+            self.root.after(0, lambda: self.lbl_song_result.configure(text="Applying spectral denoising..."))
             audio_clean = noise_agent.denoise(audio_data)
             
             # 3. Fingerprinting

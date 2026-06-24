@@ -89,10 +89,10 @@ def recognize_audio(duration, db, strategy=None, source_name="Microphone"):
     quality = noise_agent.assess_quality(audio_data)
     
     print("\n" + "-"*50)
-    print(f"[AI Quality Agent] Signal Quality: {quality['rating']}")
-    print(f"[AI Quality Agent] Estimated SNR: {quality['snr']:.1f} dB")
-    print(f"[AI Quality Agent] Clipping (distortion): {quality['clipping']:.2f}%")
-    print(f"[AI Quality Agent] Recommendation: {quality['reason']}")
+    print(f"[Quality Report] Signal Quality: {quality['rating']}")
+    print(f"[Quality Report] Estimated SNR: {quality['snr']:.1f} dB")
+    print(f"[Quality Report] Clipping (distortion): {quality['clipping']:.2f}%")
+    print(f"[Quality Report] Recommendation: {quality['reason']}")
     print("-"*50 + "\n")
     
     if quality['rating'] == 'TOO_LOW':
