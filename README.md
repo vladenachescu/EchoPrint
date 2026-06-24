@@ -6,7 +6,7 @@
 [![AI Integration](https://img.shields.io/badge/AI-Google%20Gemini%20API-purple.svg)](https://aistudio.google.com/)
 [![Audio Processing](https://img.shields.io/badge/audio-Librosa%20%2F%20SciPy-red.svg)](https://librosa.org/)
 
-**EchoPrint** is a desktop audio recognition application developed in Python, inspired by the spectral fingerprinting algorithm used by Shazam. The project was built in accordance with academic requirements and software engineering standards for the **Software Development Methods (MDS)** course at FMI Unibuc.
+**EchoPrint** is a desktop audio recognition application developed in Python, inspired by the spectral fingerprinting algorithm used by Shazam.
 
 The application scans and "learns" songs from a local music library (generating spectral fingerprints stored efficiently in SQLite), and then identifies in real-time any track played live through the microphone or loaded from an audio file. It also integrates autonomous AI agents to perform background noise mitigation, suggest similar songs, and extract trivia facts, artist biographies, and lyrics sentiments using a Large Language Model (LLM).
 
