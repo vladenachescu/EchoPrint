@@ -1,4 +1,4 @@
-# 🎙️ EchoPrint (PyShazam)
+# 🎙️ EchoPrint (Shazam clone)
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Database](https://img.shields.io/badge/database-SQLite-lightgrey.svg)](https://www.sqlite.org/)
