@@ -1,7 +1,7 @@
 import numpy as np
 import librosa
 
-class AINoiseAgent:
+class NoiseAgent:
     def __init__(self, sample_rate=22050):
         self.sample_rate = sample_rate
 

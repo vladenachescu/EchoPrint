@@ -33,8 +33,8 @@ The application is structured around four functional pillars:
 
 ### 4. Artificial Intelligence Agents
 The application orchestrates **4 autonomous AI agents** cooperating in a pipeline:
-*    **AI Noise Agent (`AINoiseAgent`)**: Evaluates raw audio quality metrics (SNR, RMS, clipping) and removes static background noise using spectral subtraction (*Spectral Gating*) prior to recognition.
-*    **AI Recommendation Agent (`AIRecommendationAgent`)**: Extracts tempo (BPM) and spectral features (flatness, centroid, zero-crossing rate) to suggest the top 3 similar tracks in the database using normalized Euclidean distance.
+*    **Noise Agent (`NoiseAgent`)**: Evaluates raw audio quality metrics (SNR, RMS, clipping) and removes static background noise using spectral subtraction (*Spectral Gating*) prior to recognition.
+*    **Recommendation Agent (`RecommendationAgent`)**: Extracts tempo (BPM) and spectral features (flatness, centroid, zero-crossing rate) to suggest the top 3 similar tracks in the database using normalized Euclidean distance.
 *    **AI Music Trivia Agent (`AIMusicTriviaAgent`)**: Queries the Gemini LLM to generate trivia facts about the song and a concise biography of the artist.
 *    **AI Lyrics Agent (`AILyricsAgent`)**: Integrates Gemini LLM to analyze the song's lyrics, determine the dominant sentiment, and output a summary.
 
@@ -60,8 +60,8 @@ PyShazam/
 │   └── db_manager.py      # SQLite database manager (Singleton Pattern)
 │
 ├── ai/                    # Package for AI Agents logic
-│   ├── ai_noise_agent.py          # Quality check and spectral denoising
-│   ├── ai_recommendation_agent.py # Audio feature extraction and similarity
+│   ├── noise_agent.py          # Quality check and spectral denoising
+│   ├── recommendation_agent.py # Audio feature extraction and similarity
 │   ├── llm_client.py              # Secure HTTP client for Gemini API
 │   ├── ai_trivia_agent.py         # Artist trivia and biography agent (LLM)
 │   └── ai_lyrics_agent.py         # Lyrics sentiment and analysis agent (LLM)
@@ -145,18 +145,18 @@ classDiagram
         +fingerprint_audio_data(y: ndarray) list
     }
     
-    class AINoiseAgent {
+    class NoiseAgent {
         +sample_rate: int
         +assess_quality(y: ndarray) dict
         +denoise(y: ndarray) ndarray
     }
     
-    class AIRecommendationAgent {
+    class RecommendationAgent {
         -db: DatabaseManager
         +extract_features(file_path: str) dict
         +recommend_for_song(song_id: int, top_n: int) list
     }
-    AIRecommendationAgent --> DatabaseManager : queries
+    RecommendationAgent --> DatabaseManager : queries
     
     class GeminiLLMClient {
         -db: DatabaseManager
@@ -182,8 +182,8 @@ classDiagram
     class EchoPrintGUI {
         -db: DatabaseManager
         -recorder: AudioRecorder
-        -noise_agent: AINoiseAgent
-        -recommender: AIRecommendationAgent
+        -noise_agent: NoiseAgent
+        -recommender: RecommendationAgent
         -trivia_agent: AIMusicTriviaAgent
         -lyrics_agent: AILyricsAgent
         +create_widgets()
@@ -191,8 +191,8 @@ classDiagram
     }
     EchoPrintGUI --> DatabaseManager
     EchoPrintGUI --> AudioRecorder
-    EchoPrintGUI --> AINoiseAgent
-    EchoPrintGUI --> AIRecommendationAgent
+    EchoPrintGUI --> NoiseAgent
+    EchoPrintGUI --> RecommendationAgent
     EchoPrintGUI --> AIMusicTriviaAgent
     EchoPrintGUI --> AILyricsAgent
 ```

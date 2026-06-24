@@ -23,8 +23,8 @@ from audio.audio_processor import AudioProcessor
 from db.db_manager import DatabaseManager
 from audio.recorder import AudioRecorder
 from audio.audio_source import MicrophoneInputStrategy, FileInputStrategy, MockInputStrategy
-from ai.ai_noise_agent import AINoiseAgent
-from ai.ai_recommendation_agent import AIRecommendationAgent
+from ai.noise_agent import NoiseAgent
+from ai.recommendation_agent import RecommendationAgent
 
 def get_file_hash(file_path):
     """Generate a hash for the file to prevent processing the same file twice."""
@@ -63,7 +63,7 @@ def learn_directory(directory_path, db):
                         
                         # Extract and insert audio features for AI recommendations
                         try:
-                            features = AIRecommendationAgent.extract_features(file_path)
+                            features = RecommendationAgent.extract_features(file_path)
                             db.insert_features(
                                 song_id, 
                                 features['bpm'], 
@@ -85,7 +85,7 @@ def recognize_audio(duration, db, strategy=None, source_name="Microphone"):
     audio_data = recorder.record(duration_seconds=duration)
     
     # 1. AI Quality assessment (AI Agent 1)
-    noise_agent = AINoiseAgent(sample_rate=22050)
+    noise_agent = NoiseAgent(sample_rate=22050)
     quality = noise_agent.assess_quality(audio_data)
     
     print("\n" + "-"*50)
@@ -173,11 +173,11 @@ def recognize_audio(duration, db, strategy=None, source_name="Microphone"):
     db.insert_history(source_name, best_song_id, quality['snr'], best_score)
     
     # 3. AI Music Recommendations (AI Agent 2)
-    recommender = AIRecommendationAgent(db)
+    recommender = RecommendationAgent(db)
     recs = recommender.recommend_for_song(best_song_id, top_n=3)
     if recs:
         print("="*50)
-        print("[AI Recommendation Agent] Recommended similar songs:")
+        print("[Recommendation Agent] Recommended similar songs:")
         for i, rec in enumerate(recs, 1):
             print(f"  {i}. {rec['song_name']} (Distance metric: {rec['distance']:.3f})")
         print("="*50 + "\n")

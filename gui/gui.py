@@ -19,8 +19,8 @@ from db.db_manager import DatabaseManager
 from audio.audio_processor import AudioProcessor
 from audio.recorder import AudioRecorder
 from audio.audio_source import MicrophoneInputStrategy, FileInputStrategy, MockInputStrategy
-from ai.ai_noise_agent import AINoiseAgent
-from ai.ai_recommendation_agent import AIRecommendationAgent
+from ai.noise_agent import NoiseAgent
+from ai.recommendation_agent import RecommendationAgent
 from ai.ai_trivia_agent import AIMusicTriviaAgent
 from ai.ai_lyrics_agent import AILyricsAgent
 
@@ -609,7 +609,7 @@ class EchoPrintGUI:
                     
                     # Extract features
                     try:
-                        features = AIRecommendationAgent.extract_features(file_path)
+                        features = RecommendationAgent.extract_features(file_path)
                         self.db.insert_features(
                             song_id,
                             features['bpm'],
@@ -705,7 +705,7 @@ class EchoPrintGUI:
             
             # 1. Quality assess
             self.root.after(0, lambda: self.lbl_song_result.configure(text="Evaluating audio quality with AI Agent..."))
-            noise_agent = AINoiseAgent(sample_rate=22050)
+            noise_agent = NoiseAgent(sample_rate=22050)
             quality = noise_agent.assess_quality(audio_data)
             
             # Update Quality view
@@ -780,7 +780,7 @@ class EchoPrintGUI:
             self.db.insert_history(source_name, best_song_id, quality['snr'], best_score)
             
             # Load recommendations
-            recommender = AIRecommendationAgent(self.db)
+            recommender = RecommendationAgent(self.db)
             recs = recommender.recommend_for_song(best_song_id, top_n=3)
             
             # Call AI LLM agents to fetch trivia and lyrics in background

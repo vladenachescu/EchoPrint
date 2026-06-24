@@ -2,7 +2,7 @@ import numpy as np
 import librosa
 from db.db_manager import DatabaseManager
 
-class AIRecommendationAgent:
+class RecommendationAgent:
     def __init__(self, db: DatabaseManager):
         self.db = db
 

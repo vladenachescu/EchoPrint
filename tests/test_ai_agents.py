@@ -5,8 +5,8 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ai.ai_noise_agent import AINoiseAgent
-from ai.ai_recommendation_agent import AIRecommendationAgent
+from ai.noise_agent import NoiseAgent
+from ai.recommendation_agent import RecommendationAgent
 from db.db_manager import DatabaseManager
 
 class TestAIAgents(unittest.TestCase):
@@ -15,8 +15,8 @@ class TestAIAgents(unittest.TestCase):
         DatabaseManager._instance = None
         self.db_path = 'test_ai_agents.db'
         self.db = DatabaseManager(self.db_path)
-        self.noise_agent = AINoiseAgent(sample_rate=22050)
-        self.recommender = AIRecommendationAgent(self.db)
+        self.noise_agent = NoiseAgent(sample_rate=22050)
+        self.recommender = RecommendationAgent(self.db)
 
     def tearDown(self):
         self.db.close()
