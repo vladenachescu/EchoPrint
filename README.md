@@ -3,8 +3,11 @@
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Database](https://img.shields.io/badge/database-SQLite-lightgrey.svg)](https://www.sqlite.org/)
 [![UI Framework](https://img.shields.io/badge/UI-Tkinter-orange.svg)](https://docs.python.org/3/library/tkinter.html)
-[![AI Integration](https://img.shields.io/badge/AI-Google%20Gemini%20API-purple.svg)](https://aistudio.google.com/)
-[![Audio Processing](https://img.shields.io/badge/audio-Librosa%20%2F%20SciPy-red.svg)](https://librosa.org/)
+[![AI Cloud Integration](https://img.shields.io/badge/AI_Cloud-Google_Gemini_API-purple.svg)](https://aistudio.google.com/)
+[![Local LLM Integration](https://img.shields.io/badge/Local_LLM-Ollama_/_Llama3-yellow.svg)](https://ollama.com/)
+[![Audio DSP Library](https://img.shields.io/badge/Audio_DSP-Librosa-red.svg)](https://librosa.org/)
+[![Scientific Computing](https://img.shields.io/badge/scicomp-SciPy-blueviolet.svg)](https://scipy.org/)
+
 
 **EchoPrint** is a desktop audio recognition application developed in Python, inspired by the spectral fingerprinting algorithm used by Shazam.
 
