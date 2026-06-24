@@ -12,6 +12,8 @@
 
 The application scans and "learns" songs from a local music library (generating spectral fingerprints stored efficiently in SQLite), and then identifies in real-time any track played live through the microphone or loaded from an audio file. It also integrates autonomous AI agents to perform background noise mitigation, suggest similar songs, and extract trivia facts, artist biographies, and lyrics sentiments using a Large Language Model (LLM).
 
+Documentație - [Google Docs](https://docs.google.com/document/d/1gXBzpCupLWUaWoxtkbHfaCCv-7QZenIc3GX9YUQMewk/edit?usp=sharing)
+
 ---
 
 ##  Core Features
